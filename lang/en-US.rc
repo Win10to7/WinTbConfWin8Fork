@@ -1,0 +1,94 @@
+#include "src/resource.h"
+
+#ifdef LANG_EN_US
+#define WIN32_LEAN_AND_MEAN
+#include <Windows.h>
+#include <CommCtrl.h>
+
+LANGUAGE LANG_ENGLISH, SUBLANG_ENGLISH_US
+
+VS_VERSION_INFO VERSIONINFO
+FILEVERSION VER_VERSION
+PRODUCTVERSION VER_VERSION
+FILEOS VOS_NT_WINDOWS32
+FILETYPE VFT_APP
+BEGIN
+	BLOCK "StringFileInfo"
+	BEGIN
+		BLOCK "040904B0" /* LANG_ENGLISH/SUBLANG_ENGLISH_US, Unicode CP */
+		BEGIN
+			VALUE "CompanyName", "Torto"
+			VALUE "FileDescription", "Configures Explorer taskbar settings"
+			VALUE "FileVersion", VER_VERSION_STR
+			VALUE "InternalName", "TbConf"
+			VALUE "LegalCopyright", "Licenced under the GPLv2"
+			VALUE "OriginalFilename", "TbConf.exe"
+			VALUE "ProductName", "Taskbar Properties"
+			VALUE "ProductVersion", VER_VERSION_STR
+		END
+	END
+	BLOCK "VarFileInfo"
+	BEGIN
+		VALUE "Translation", LANG_NEUTRAL, SUBLANG_NEUTRAL
+	END
+END
+
+IDD_TASKBAR DIALOGEX 0, 0, 254, 345
+STYLE DS_FIXEDSYS | DS_MODALFRAME | WS_VISIBLE | WS_CAPTION | WS_SYSMENU
+CAPTION "Taskbar Properties"
+LANGUAGE LANG_ENGLISH, SUBLANG_ENGLISH_US
+FONT 8, "MS Shell Dlg"
+{
+	GROUPBOX "Taskbar", IDC_STATIC, 7, 6, 238, 124
+	AUTOCHECKBOX "&Lock the taskbar", IDC_TB_LOCK, 13, 18, 200, 10
+	AUTOCHECKBOX "A&utomatically hide the taskbar", IDC_TB_AUTOHIDE, 13, 32, 200, 10
+	AUTOCHECKBOX "Us&e small buttons", IDC_TB_SMBTN, 13, 46, 200, 10
+	LTEXT "Location on screen:", IDC_STATIC, 13, 63, 100, 10
+	COMBOBOX IDC_TB_LOCATION, 118, 60, 110, 14, CBS_DROPDOWNLIST | WS_VSCROLL | WS_TABSTOP
+	LTEXT "Combine &buttons:", IDC_STATIC, 13, 79, 100, 10
+	COMBOBOX IDC_TB_COMBINEBTN, 118, 76, 110, 14, CBS_DROPDOWNLIST | WS_VSCROLL | WS_TABSTOP
+	LTEXT "Notification area:", IDC_STATIC, 13, 95, 100, 10
+	CONTROL "&Customize...", IDC_TB_TRAYWND, BUTTON, BS_PUSHBUTTON | WS_CHILD | WS_VISIBLE | WS_TABSTOP, 117, 91, 56, 14
+	CONTROL "Use &Peek to preview the desktop when you move the mouse cursor to the Show desktop button at the end of the taskbar", IDC_TB_PEEK, BUTTON, BS_AUTOCHECKBOX | BS_MULTILINE | WS_CHILD | WS_VISIBLE | WS_TABSTOP, 13, 109, 224, 20
+
+	GROUPBOX "Multiple displays", IDC_STATIC, 7, 135, 238, 88
+	CONTROL "&Show taskbar on all displays", IDC_TB_ALLDISPLAYS, BUTTON, BS_AUTOCHECKBOX | BS_MULTILINE | WS_CHILD | WS_VISIBLE | WS_TABSTOP, 13, 146, 200, 10
+	LTEXT "S&how buttons on:", IDC_STATIC, 13, 161, 200, 10
+	COMBOBOX IDC_TB_MMDISPLAYS, 13, 173, 190, 14, CBS_DROPDOWNLIST | WS_VSCROLL | WS_TABSTOP
+	LTEXT "Combine buttons on &other taskbars:", IDC_STATIC, 13, 192, 200, 10
+	COMBOBOX IDC_TB_MMCOMBINEBTN, 13, 204, 190, 14, CBS_DROPDOWNLIST | WS_VSCROLL | WS_TABSTOP
+
+	GROUPBOX "Navigation", IDC_STATIC, 7, 228, 238, 32
+	CONTROL "Replace Command Prompt with PowerShell in the menu when I right-click the start button or press Windows key+X", IDC_TB_WINXPS, BUTTON, BS_AUTOCHECKBOX | BS_MULTILINE | WS_CHILD | WS_VISIBLE | WS_TABSTOP, 13, 236, 224, 20
+
+	GROUPBOX "Appearance", IDC_STATIC, 7, 265, 238, 54
+#if 0
+	AUTOCHECKBOX "Dark taskbar theme", IDC_TB_SYSDARK, 13, 277, 200, 10
+	AUTOCHECKBOX "Dark apps theme", IDC_TB_APPDARK, 13, 291, 200, 10
+#endif
+	AUTOCHECKBOX "Use transparency", IDC_TB_TRANSP, 13, 277, 200, 10
+	AUTOCHECKBOX "Show accent color on the taskbar", IDC_TB_USEACCENTCOLOR, 13, 291, 200, 10
+	LTEXT "Accent color:", IDC_STATIC, 13, 305, 70, 10
+	CHECKBOX "", IDC_TB_ACCENTCOLOR, 60, 303, 26, 13, BS_PUSHLIKE | BS_BITMAP
+	LTEXT "Window color:", IDC_STATIC, 105, 305, 70, 10
+	CHECKBOX "", IDC_TB_DWMCOLOR, 154, 303, 26, 13, BS_PUSHLIKE | BS_BITMAP
+	
+	PUSHBUTTON "Restart Explorer", IDC_RESTARTEXP, 117, 325, 74, 14
+	DEFPUSHBUTTON "OK", IDOK, 195, 325, 50, 14
+}
+
+STRINGTABLE
+BEGIN
+	IDS_TB_POS_L "Left"
+	IDS_TB_POS_T "Top"
+	IDS_TB_POS_R "Right"
+	IDS_TB_POS_B "Bottom"
+	IDS_TB_COMB_YES "Always, hide labels"
+	IDS_TB_COMB_FULL "When taskbar is full"
+	IDS_TB_COMB_NO "Never"
+	IDS_TB_MMALL "All taskbars"
+	IDS_TB_MMMAIN "Main taskbar and taskbar where the window is open"
+	IDS_TB_MMCUR "Taskbar where the window is open"
+END
+
+#endif /*def LANG_EN_US*/

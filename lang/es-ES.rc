@@ -1,0 +1,96 @@
+#include "src/resource.h"
+
+/* Spanish translation by Patricio Martínez Ros, Javier Remacha, Franco Tortoriello */
+#ifdef LANG_ES_ES
+#define WIN32_LEAN_AND_MEAN
+#include <Windows.h>
+#include <CommCtrl.h>
+
+LANGUAGE LANG_SPANISH, SUBLANG_SPANISH_MODERN
+
+VS_VERSION_INFO VERSIONINFO
+FILEVERSION VER_VERSION
+PRODUCTVERSION VER_VERSION
+FILEOS VOS_NT_WINDOWS32
+FILETYPE VFT_APP
+BEGIN
+	BLOCK "StringFileInfo"
+	BEGIN
+		BLOCK "0C0A04B0" /* LANG_SPANISH/SUBLANG_SPANISH_MODERN, Unicode CP */
+		BEGIN
+			VALUE "CompanyName", "Torto"
+			VALUE "FileDescription", "Configura la barra de tareas de Explorer"
+			VALUE "FileVersion", VER_VERSION_STR
+			VALUE "InternalName", "TbConf"
+			VALUE "LegalCopyright", "Licenciado bajo la GPLv2"
+			VALUE "OriginalFilename", "TbConf.exe"
+			VALUE "ProductName", "Propiedades de la Barra de Tareas"
+			VALUE "ProductVersion", VER_VERSION_STR
+		END
+	END
+	BLOCK "VarFileInfo"
+	BEGIN
+		VALUE "Translation", LANG_NEUTRAL, SUBLANG_NEUTRAL
+	END
+END
+
+
+IDD_TASKBAR DIALOGEX 0, 0, 254, 345
+STYLE DS_FIXEDSYS | DS_MODALFRAME | WS_VISIBLE | WS_CAPTION | WS_SYSMENU
+CAPTION "Propiedades de la Barra de Tareas"
+LANGUAGE LANG_ENGLISH, SUBLANG_ENGLISH_US
+FONT 8, "MS Shell Dlg"
+{
+	GROUPBOX "Barra de Tareas", IDC_STATIC, 7, 6, 238, 124
+	AUTOCHECKBOX "&Bloquear la barra de tareas", IDC_TB_LOCK, 13, 18, 200, 10
+	AUTOCHECKBOX "Ocultar a&utomáticamente la barra de tareas", IDC_TB_AUTOHIDE, 13, 32, 200, 10
+	AUTOCHECKBOX "Us&ar botones pequeños", IDC_TB_SMBTN, 13, 46, 200, 10
+	LTEXT "Ubicación en la pantalla:", IDC_STATIC, 13, 63, 100, 10
+	COMBOBOX IDC_TB_LOCATION, 118, 60, 110, 14, CBS_DROPDOWNLIST | WS_VSCROLL | WS_TABSTOP
+	LTEXT "Combinar botones:", IDC_STATIC, 13, 79, 100, 10
+	COMBOBOX IDC_TB_COMBINEBTN, 118, 76, 110, 14, CBS_DROPDOWNLIST | WS_VSCROLL | WS_TABSTOP
+	LTEXT "Área de notificación:", IDC_STATIC, 13, 95, 100, 10
+	CONTROL "&Personalizar...", IDC_TB_TRAYWND, BUTTON, BS_PUSHBUTTON | WS_CHILD | WS_VISIBLE | WS_TABSTOP, 117, 91, 56, 14
+	CONTROL "Usar &Peek para previsualizar el escritorio cuando mueve el cursor sobre el botón Mostrar escritorio al final de la barra de tareas", IDC_TB_PEEK, BUTTON, BS_AUTOCHECKBOX | BS_MULTILINE | WS_CHILD | WS_VISIBLE | WS_TABSTOP, 13, 109, 224, 20
+
+	GROUPBOX "Múltiples pantallas", IDC_STATIC, 7, 135, 238, 88
+	CONTROL "&Mostrar barra de tareas en todas las pantallas", IDC_TB_ALLDISPLAYS, BUTTON, BS_AUTOCHECKBOX | BS_MULTILINE | WS_CHILD | WS_VISIBLE | WS_TABSTOP, 13, 146, 200, 10
+	LTEXT "Mostrar botones en:", IDC_STATIC, 13, 161, 200, 10
+	COMBOBOX IDC_TB_MMDISPLAYS, 13, 173, 190, 14, CBS_DROPDOWNLIST | WS_VSCROLL | WS_TABSTOP
+	LTEXT "Combinar botones en &otras barras de tareas:", IDC_STATIC, 13, 192, 200, 10
+	COMBOBOX IDC_TB_MMCOMBINEBTN, 13, 204, 190, 14, CBS_DROPDOWNLIST | WS_VSCROLL | WS_TABSTOP
+
+	GROUPBOX "Navegación", IDC_STATIC, 7, 228, 238, 32
+	CONTROL "Reemplazar la Consola de Comandos por PowerShell en el menú cuando hago clic derecho en el menú inicio o presiono Windows+X", IDC_TB_WINXPS, BUTTON, BS_AUTOCHECKBOX | BS_MULTILINE | WS_CHILD | WS_VISIBLE | WS_TABSTOP, 13, 236, 224, 20
+
+	GROUPBOX "Apariencia", IDC_STATIC, 7, 265, 238, 54
+#if 0
+	AUTOCHECKBOX "Tema de barra de tareas oscuro", IDC_TB_SYSDARK, 13, 277, 200, 10
+	AUTOCHECKBOX "Tema de apps oscuro", IDC_TB_APPDARK, 13, 291, 200, 10
+#endif
+	AUTOCHECKBOX "Usar trasnparencia", IDC_TB_TRANSP, 13, 277, 200, 10
+	AUTOCHECKBOX "Mostrar color de acento en la barra de tareas", IDC_TB_USEACCENTCOLOR, 13, 291, 200, 10
+	LTEXT "Color de acento", IDC_STATIC, 13, 305, 70, 10
+	CHECKBOX "", IDC_TB_ACCENTCOLOR, 60, 303, 26, 13, BS_PUSHLIKE | BS_BITMAP
+	LTEXT "Color de ventana:", IDC_STATIC, 105, 305, 70, 10
+	CHECKBOX "", IDC_TB_DWMCOLOR, 154, 303, 26, 13, BS_PUSHLIKE | BS_BITMAP
+	
+	PUSHBUTTON "Reiniciar Explorer", IDC_RESTARTEXP, 117, 325, 74, 14
+	DEFPUSHBUTTON "Aceptar", IDOK, 195, 325, 50, 14
+}
+
+STRINGTABLE
+BEGIN
+	IDS_TB_POS_L "Izquierda"
+	IDS_TB_POS_T "Arriba"
+	IDS_TB_POS_R "Derecha"
+	IDS_TB_POS_B "Abajo"
+	IDS_TB_COMB_YES "Siempre, ocultar etiquetas"
+	IDS_TB_COMB_FULL "Cuando la barra está llena"
+	IDS_TB_COMB_NO "Nunca"
+	IDS_TB_MMALL "Todas las barras de tareas"
+	IDS_TB_MMMAIN "Barra de tareas principal y donde está abierta la ventana"
+	IDS_TB_MMCUR "Barra de tareas donde la ventana está abierta"
+END
+
+#endif /*def LANG_ES_ES*/
