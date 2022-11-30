@@ -273,7 +273,8 @@ static void RestartExplorer(void)
     DWORD procId[1024];
     DWORD cbNeeded;
 
-    if (!EnumProcesses(procId, sizeof(procId), &cbNeeded)) return;
+    if (!EnumProcesses(procId, sizeof(procId), &cbNeeded))
+        return;
 
     /* number of process IDs returned */
     DWORD cProc = cbNeeded / sizeof(DWORD);
@@ -281,34 +282,39 @@ static void RestartExplorer(void)
     HANDLE hProc;
     HMODULE hMod;
     WCHAR szProcessName[13] = L"";
+    BOOL bKilled = FALSE;
 
     for (UINT i = 0; i < cProc; i++)
     {
         hProc = OpenProcess(PROCESS_QUERY_INFORMATION | PROCESS_VM_READ | PROCESS_TERMINATE, FALSE, procId[i]);
-        if (hProc)
+        if (!hProc)
+            continue;
+
+        if (EnumProcessModules(hProc, &hMod, sizeof(hMod), &cbNeeded))
         {
-            if (EnumProcessModules(hProc, &hMod, sizeof(hMod), &cbNeeded))
+            GetModuleBaseNameW(hProc, hMod, szProcessName, sizeof(szProcessName) / sizeof(WCHAR));
+            if (0 == lstrcmpiW(szProcessName, L"explorer.exe"))
             {
-                GetModuleBaseNameW(hProc, hMod, szProcessName, sizeof(szProcessName) / sizeof(WCHAR));
-                if (0 == lstrcmpW(szProcessName, L"explorer.exe"))
-                {
-                    TerminateProcess(hProc, 1);
-                    ShellExecuteW(NULL, L"open", L"explorer.exe", NULL, NULL, SW_SHOWNORMAL);
-                    Sleep(100);
-                    hWndTaskbar = FindWindowW(L"Shell_TrayWnd", L"");
-                    /* close only the first instance; if folders are opened in
-                       separate processes, try to keep them open
-                       (does not work if explorer was already killed, as the
-                       shell process will have a higher PID than File Explorer)
-                     */
-                    /*
-                    CloseHandle(hProc);
-                    break;
+                bKilled = TerminateProcess(hProc, 1);
+#if 0
+                /* close only the first instance; if folders are opened in
+                    separate processes, try to keep them open
+                    (does not work if explorer was already killed, as the
+                    shell process will have a higher PID than File Explorer)
                     */
-                }
+                CloseHandle(hProc);
+                break;
+#endif
             }
         }
         CloseHandle(hProc);
+    }
+
+    /*if (bKilled)*/
+    {
+        ShellExecuteW(NULL, L"open", L"explorer.exe", NULL, NULL, SW_SHOWNORMAL);
+        Sleep(200);
+        hWndTaskbar = FindWindowW(L"Shell_TrayWnd", L"");
     }
 }
 
