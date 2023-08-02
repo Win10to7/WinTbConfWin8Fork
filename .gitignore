@@ -1,0 +1,10 @@
+.vs
+Win32
+x64
+*.log
+
+*.exe
+*.dll
+*.obj
+*.res
+*.aps

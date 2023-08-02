@@ -1,7 +1,6 @@
 /*
- * COPYRIGHT:	See COPYING in the top level directory
- * PROJECT:	Taskbar Properties
- * PURPOSE:	Utility functions for color picker buttons
+ * COPYRIGHT: See COPYING in the top level directory
+ * PURPOSE:   Utility functions for color picker buttons
  *
  * Based on code from ReactOS
  * Original programmers:
@@ -12,7 +11,10 @@
 #include "dwmutil.h"
 #include <commdlg.h>
 
-static void DrawRectangle(HDC hdc, RECT rect, COLORREF color)
+static const TCHAR g_appearanceKey[] = TEXT("Control Panel\\Appearance");
+
+static
+void DrawRectangle(HDC hdc, RECT rect, COLORREF color)
 {
     HBRUSH hBrush = CreateSolidBrush(color);
     FillRect(hdc, &rect, hBrush);
@@ -20,7 +22,8 @@ static void DrawRectangle(HDC hdc, RECT rect, COLORREF color)
 }
 
 /* Draw a color on a color picker button, creating the bitmap if it is NULL */
-void SetColorButtonColor(HWND hWnd, int controlId, HBITMAP *hBmp, COLORREF color)
+void SetColorButtonColor(
+    HWND hWnd, int controlId, HBITMAP *hBmp, COLORREF color)
 {
     static const LONG RECT_WIDTH = 28;
     static const LONG RECT_HEIGHT = 15;
@@ -90,7 +93,8 @@ void SetColorButtonColor(HWND hWnd, int controlId, HBITMAP *hBmp, COLORREF color
     SelectObject(hdcCompat, hgdiTemp);
     DeleteDC(hdcCompat);
 
-    SendDlgItemMessageW(hWnd, controlId, BM_SETIMAGE, (WPARAM)IMAGE_BITMAP, (LPARAM)*hBmp);
+    SendDlgItemMessage(
+	hWnd, controlId, BM_SETIMAGE, (WPARAM)IMAGE_BITMAP, (LPARAM)*hBmp);
 }
 
 /* Select a color using a color picker.
@@ -98,29 +102,31 @@ void SetColorButtonColor(HWND hWnd, int controlId, HBITMAP *hBmp, COLORREF color
  */
 BOOL PickColor(HWND hWnd, _Out_ COLORREF *crColor)
 {
-    COLORREF crCustom[16] = { 0 };
+    COLORREF crCustom[16];
+    for (int iColor = 0; iColor < 16; iColor++)
+	crCustom[iColor] = RGB(255, 255, 255);
+
     BOOL chosen = FALSE;
 
-#ifdef SAVE_CUSTOM_COLORS
     HKEY hKey = NULL;
 
     /* Load custom colors from Registry */
-    if (RegCreateKeyExW(HKEY_CURRENT_USER, g_AppearanceKey, 0, NULL,
+    if (RegCreateKeyEx(HKEY_CURRENT_USER, g_appearanceKey, 0, NULL,
 	0, KEY_QUERY_VALUE, NULL, &hKey, NULL) == ERROR_SUCCESS)
 	/* Now the key is either created or opened existing, if ERROR_SUCCESS */
     {
 	/* Key opened */
 	DWORD dwType = REG_BINARY;
 	DWORD cbData = sizeof(crCustom);
-	RegQueryValueExW(hKey, L"CustomColors", 0, &dwType, (BYTE *)crCustom, &cbData);
+	RegQueryValueEx(
+	    hKey, TEXT("CustomColors"), 0, &dwType, (BYTE *)crCustom, &cbData);
 	RegCloseKey(hKey); hKey = NULL;
     }
-#endif
 
-    CHOOSECOLORW cc;
+    CHOOSECOLOR cc;
 
     /* Prepare cc structure */
-    cc.lStructSize = sizeof(CHOOSECOLORW);
+    cc.lStructSize = sizeof(CHOOSECOLOR);
     cc.hwndOwner = hWnd;
     cc.hInstance = NULL;
     cc.rgbResult = *crColor;
@@ -131,24 +137,24 @@ BOOL PickColor(HWND hWnd, _Out_ COLORREF *crColor)
     cc.lpTemplateName = NULL;
 
     /* Create the colorpicker */
-    if (ChooseColorW(&cc) && (*crColor != cc.rgbResult))
+    if (ChooseColor(&cc) && (*crColor != cc.rgbResult))
     {
         chosen = TRUE;
         *crColor = cc.rgbResult;
     }
 
-#ifdef SAVE_CUSTOM_COLORS
-    /* Always save custom colors to reg. If the key did not exist previously, it was created above */
-    if (RegOpenKeyExW(HKEY_CURRENT_USER, g_AppearanceKey, 0,
+    /* Always save custom colors to reg. If the key did not exist previously, it
+     * was created above
+     */
+    if (RegOpenKeyEx(HKEY_CURRENT_USER, g_appearanceKey, 0,
 	KEY_SET_VALUE, &hKey) == ERROR_SUCCESS)
     {
 	/* Key opened */
-	RegSetValueExW(hKey, L"CustomColors", 0, REG_BINARY,
+	RegSetValueEx(hKey, TEXT("CustomColors"), 0, REG_BINARY,
 	    (BYTE *)crCustom, sizeof(crCustom));
 	RegCloseKey(hKey);
 	hKey = NULL;
     }
-#endif
 
     return chosen;
 }

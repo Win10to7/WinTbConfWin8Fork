@@ -1,22 +1,29 @@
 /*
- * COPYRIGHT:	See COPYING in the top level directory
- * PROJECT:	Taskbar Properties
- * PURPOSE:	Application entry point
+ * COPYRIGHT: See COPYING in the top level directory
+ * PURPOSE:   Application entry point
  *
- * PROGRAMMER:	Franco Tortoriello (torto09@gmail.com)
+ * PROGRAMMER: Franco Tortoriello (torto09@gmail.com)
  */
 
- /* Enable ability to use visual styles */
-#pragma comment(linker,"\"/manifestdependency:type='win32' \
-name='Microsoft.Windows.Common-Controls' version='6.0.0.0' \
-processorArchitecture='*' publicKeyToken='6595b64144ccf1df' language='*'\"")
+#define WIN32_LEAN_AND_MEAN
+#include <Windows.h>
+#include "resource.h"
 
-#include "tbconf.h"
+/* In wndtb.c */
+INT_PTR CALLBACK TaskbarSettingsDlgProc(
+    HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam);
 
-void __stdcall main(void)
+HINSTANCE g_hInstance;
+
+#if defined(__MINGW64__)
+void WINAPI __main(void)
+#else
+void WINAPI _main(void)
+#endif
 {
-    hInstance = GetModuleHandleW(NULL);
+    g_hInstance = GetModuleHandle(NULL);
 
-    DialogBoxParamW(hInstance, MAKEINTRESOURCEW(IDD_TASKBAR), NULL, TaskbarSettingsDlgProc, 0);
+    DialogBoxParam(g_hInstance, MAKEINTRESOURCE(IDD_TASKBAR),
+        NULL, TaskbarSettingsDlgProc, 0);
     ExitProcess(0);
 }

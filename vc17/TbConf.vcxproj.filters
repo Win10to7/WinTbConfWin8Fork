@@ -15,42 +15,33 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ResourceCompile Include="lang\en-US.rc">
-      <Filter>Resource Files</Filter>
-    </ResourceCompile>
-    <ResourceCompile Include="lang\es-ES.rc">
-      <Filter>Resource Files</Filter>
-    </ResourceCompile>
-  </ItemGroup>
-  <ItemGroup>
-    <ClInclude Include="src\resource.h">
+    <ClInclude Include="..\src\resource.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="src\tbconf.h">
+    <ClInclude Include="..\src\colorbtn.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="src\colorbtn.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="src\dwmutil.h">
+    <ClInclude Include="..\src\dwmutil.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="src\tbdlg.c">
+    <ClCompile Include="..\src\colorbtn.c">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="src\colorbtn.c">
+    <ClCompile Include="..\src\dwmutil.c">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="src\main.c">
+    <ClCompile Include="..\src\main.c">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="src\dwmutil.c">
+    <ClCompile Include="..\src\wndtb.c">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="src\mincrt.c">
-      <Filter>Source Files</Filter>
-    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <ResourceCompile Include="..\res\app.rc">
+      <Filter>Resource Files</Filter>
+    </ResourceCompile>
   </ItemGroup>
 </Project>

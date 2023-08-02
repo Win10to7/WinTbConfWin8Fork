@@ -1,0 +1,27 @@
+#pragma code_page(65001)  /* UTF-8 */
+
+#define APSTUDIO_READONLY_SYMBOLS
+
+#include "../src/resource.h"
+
+#define APSTUDIO_HIDDEN_SYMBOLS
+#define WIN32_LEAN_AND_MEAN
+#include <Windows.h>
+#include <CommCtrl.h>
+#undef APSTUDIO_HIDDEN_SYMBOLS
+
+#undef APSTUDIO_READONLY_SYMBOLS
+
+/* Style definitions */
+
+#define DS_PAGE DS_SHELLFONT | DS_MODALFRAME | DS_NOIDLEMSG | WS_POPUP | \
+                WS_VISIBLE | WS_CAPTION | WS_SYSMENU
+
+#define CBS_LIST CBS_DROPDOWNLIST | WS_VSCROLL | WS_TABSTOP
+
+LANGUAGE LANG_ENGLISH, SUBLANG_ENGLISH_US
+
+CREATEPROCESS_MANIFEST_RESOURCE_ID RT_MANIFEST "TbConf.exe.manifest"
+
+#include "lang/en-US.h"
+#include "lang/es-ES.h"
