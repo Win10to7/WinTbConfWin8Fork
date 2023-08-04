@@ -5,100 +5,93 @@
  * PROGRAMMER: Franco Tortoriello (torto09@gmail.com)
  */
 
-#include "colorbtn.h"
-#include "dwmutil.h"
 #include "resource.h"
 
+#define WIN32_LEAN_AND_MEAN
+#include <Windows.h>
+#include <psapi.h>
 #include <shellapi.h>
 
 extern HINSTANCE g_hInstance;
 
-static const TCHAR g_TaskbarCfgKey[] =
+static const TCHAR g_taskbarKey[] =
     TEXT("SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Explorer\\Advanced");
-static const TCHAR g_StuckRects3Key[] =
+
+static const TCHAR g_stuckRectsKey[] =
     TEXT("SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Explorer\\StuckRects3");
-static const TCHAR g_PersonalizeKey[] =
-    TEXT("SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Themes\\Personalize");
 
-static HWND hWndDlg;
-static HWND hWndTaskbar;
+static HWND g_hDlg;
+static HWND g_hTaskbar;
 
-/* Win8+ taskbar, start menu and action center. Also sets the DWM color. */
-static const unsigned char COLOR_ACCENT = 0;
-
-/* DWM window titlebars and borders */
-static const unsigned char COLOR_DWM = 1;
-
-static COLORREF crSysColor[2];
-static HBITMAP hBmpColorBtn[2];
-
-static void InitComboboxes(void)
+static
+void InitComboboxes(void)
 {
     UINT iElement;
     TCHAR text[60];
 
-#define INIT_COMBO(iControl, iString, nElements) \
+#define InitCombo(iControl, iString, nElements) \
     for (iElement = 0; iElement < nElements; iElement++) { \
         LoadString(g_hInstance, iString + iElement, (TCHAR *)&text, 59); \
-        SendDlgItemMessage(hWndDlg, iControl, CB_ADDSTRING, 0, (LPARAM)&text); \
+        SendDlgItemMessage(g_hDlg, iControl, CB_ADDSTRING, 0, (LPARAM)&text); \
     }
 
-    INIT_COMBO(IDC_TB_LOCATION, IDS_TB_POS_L, 4);
-    INIT_COMBO(IDC_TB_COMBINEBTN, IDS_TB_COMB_YES, 3);
-    INIT_COMBO(IDC_TB_MMDISPLAYS, IDS_TB_MMALL, 3);
-    INIT_COMBO(IDC_TB_MMCOMBINEBTN, IDS_TB_COMB_YES, 3);
-#undef INIT_COMBO
+    InitCombo(IDC_TB_LOCATION, IDS_TB_POS_L, 4);
+    InitCombo(IDC_TB_COMBINEBTN, IDS_TB_COMB_YES, 3);
+    InitCombo(IDC_TB_MMDISPLAYS, IDS_TB_MMALL, 3);
+    InitCombo(IDC_TB_MMCOMBINEBTN, IDS_TB_COMB_YES, 3);
+#undef InitCombo
 }
 
-#define SET_CHECKED(iControl, bChecked) \
-    SendDlgItemMessage(hWndDlg, iControl, BM_SETCHECK, TRUE == bChecked, 0)
+#define SetChecked(iControl, bChecked) \
+    SendDlgItemMessage(g_hDlg, iControl, BM_SETCHECK, bChecked == TRUE, 0)
 
-#define SET_COMBO_INDEX(iControl, index) \
-    SendDlgItemMessage(hWndDlg, iControl, CB_SETCURSEL, (WPARAM)index, 0)
+#define SetUnchecked(iControl, bChecked) \
+    SendDlgItemMessage(g_hDlg, iControl, BM_SETCHECK, bChecked == FALSE, 0)
 
-#define SET_NOT_CHECKED(iControl, bChecked) \
-    SendDlgItemMessage(hWndDlg, iControl, BM_SETCHECK, FALSE == bChecked, 0)
+#define SetComboIndex(iControl, index) \
+    SendDlgItemMessage(g_hDlg, iControl, CB_SETCURSEL, (WPARAM)index, 0)
 
-#define IF_READ_DWORD(value) \
-    result = RegQueryValueEx(hKey, value, 0, &type, (BYTE *)&iData, &cbData); \
-    if ((ERROR_SUCCESS == result) && (REG_DWORD == type))
+#define IfReadDWord(value) \
+    status = RegQueryValueEx(hKey, value, 0, &dwType, (BYTE *)&iData, &cbData); \
+    if (status == ERROR_SUCCESS && dwType == REG_DWORD)
 
-#define DWORD_TO_COMBO(regValue, iControl, defaultIndex) \
-    IF_READ_DWORD(regValue) \
-        SET_COMBO_INDEX(iControl, iData); \
+#define DWord2Combo(regValue, iControl, defaultIndex) \
+    IfReadDWord(regValue) \
+        SetComboIndex(iControl, iData); \
     else \
-        SET_COMBO_INDEX(iControl, defaultIndex)
+        SetComboIndex(iControl, defaultIndex)
 
-static void LoadTaskbarSettings(void)
+static
+void LoadTaskbarSettings(void)
 {
     HKEY hKey = NULL;
-    LSTATUS result = RegOpenKeyEx(
-        HKEY_CURRENT_USER, g_TaskbarCfgKey, 0, KEY_READ, &hKey);
+    LSTATUS status = RegOpenKeyEx(
+        HKEY_CURRENT_USER, g_taskbarKey, 0, KEY_READ, &hKey);
 
-    if (ERROR_SUCCESS != result) return;
+    if (status != ERROR_SUCCESS) return;
     
-    DWORD type = REG_DWORD;
+    DWORD dwType;
     DWORD cbData = sizeof(DWORD);
     DWORD iData;
 
-    IF_READ_DWORD(TEXT("TaskbarSizeMove"))
-        SET_NOT_CHECKED(IDC_TB_LOCK, iData);
+    IfReadDWord(TEXT("TaskbarSizeMove"))
+        SetUnchecked(IDC_TB_LOCK, iData);
     else
-        SET_CHECKED(IDC_TB_LOCK, TRUE);
+        SetChecked(IDC_TB_LOCK, TRUE);
 
-    IF_READ_DWORD(TEXT("TaskbarSmallIcons"))
-        SET_CHECKED(IDC_TB_SMBTN, iData);
+    IfReadDWord(TEXT("TaskbarSmallIcons"))
+        SetChecked(IDC_TB_SMBTN, iData);
 
-    IF_READ_DWORD(TEXT("DisablePreviewDesktop"))
-        SET_NOT_CHECKED(IDC_TB_PEEK, iData);
+    IfReadDWord(TEXT("DisablePreviewDesktop"))
+        SetUnchecked(IDC_TB_PEEK, iData);
 
-    IF_READ_DWORD(TEXT("MMTaskbarEnabled"))
-        SET_CHECKED(IDC_TB_ALLDISPLAYS, iData);
+    IfReadDWord(TEXT("MMTaskbarEnabled"))
+        SetChecked(IDC_TB_ALLDISPLAYS, iData);
     else
-        SET_CHECKED(IDC_TB_ALLDISPLAYS, TRUE);
+        SetChecked(IDC_TB_ALLDISPLAYS, TRUE);
 
-    IF_READ_DWORD(TEXT("DontUsePowerShellOnWinX"))
-        SET_NOT_CHECKED(IDC_TB_WINXPS, iData);
+    IfReadDWord(TEXT("DontUsePowerShellOnWinX"))
+        SetUnchecked(IDC_TB_WINXPS, iData);
 #if 0
     else
         /* Default on 1703+ */
@@ -107,101 +100,52 @@ static void LoadTaskbarSettings(void)
 
     /* Comboboxes */
 
-    DWORD_TO_COMBO(TEXT("TaskbarGlomLevel"), IDC_TB_COMBINEBTN, 0);
-    DWORD_TO_COMBO(TEXT("MMTaskbarMode"), IDC_TB_MMDISPLAYS, 0);
-    DWORD_TO_COMBO(TEXT("MMTaskbarGlomLevel"), IDC_TB_MMCOMBINEBTN, 0);
+    DWord2Combo(TEXT("TaskbarGlomLevel"), IDC_TB_COMBINEBTN, 0);
+    DWord2Combo(TEXT("MMTaskbarMode"), IDC_TB_MMDISPLAYS, 0);
+    DWord2Combo(TEXT("MMTaskbarGlomLevel"), IDC_TB_MMCOMBINEBTN, 0);
 #undef INIT_COMBO_REG
 
     RegCloseKey(hKey);
 }
 
-static void LoadPersonalizeSettings(void)
+#undef SetChecked
+#undef SetUnchecked
+#undef SetComboIndex
+#undef IfReadDWord
+#undef DWord2Combo
+
+static
+void LoadStuckRects3(void)
 {
     HKEY hKey = NULL;
-    LSTATUS result = RegOpenKeyEx(
-        HKEY_CURRENT_USER, g_PersonalizeKey, 0, KEY_READ, &hKey);
-    if (ERROR_SUCCESS != result) return;
-
-    DWORD type = REG_DWORD;
-    DWORD cbData = sizeof(DWORD);
-    DWORD iData;
-
-#if 0
-    /* 1903 */
-    IF_READ_DWORD(TEXT("SystemUsesLightTheme"))
-        SET_NOT_CHECKED(IDC_TB_SYSDARK, iData);
-    else
-        SET_CHECKED(IDC_TB_SYSDARK, TRUE);
-
-    IF_READ_DWORD(TEXT("AppsUseLightTheme"))
-        SET_NOT_CHECKED(IDC_TB_APPDARK, iData);
-#endif
-
-    IF_READ_DWORD(TEXT("EnableTransparency"))
-        SET_CHECKED(IDC_TB_TRANSP, iData);
-
-    IF_READ_DWORD(TEXT("ColorPrevalence"))
-        SET_CHECKED(IDC_TB_USEACCENTCOLOR, iData);
-
-    RegCloseKey(hKey);
-}
-
-#if 0
-static void LoadDwmSettings(void)
-{
-    HKEY hKey = NULL;
-    LSTATUS result = RegOpenKeyEx(HKEY_CURRENT_USER,
-        TEXT("SOFTWARE\\Microsoft\\Windows\\DWM"), 0, KEY_READ, &hKey);
-    if (ERROR_SUCCESS != result) return;
-
-    DWORD type = REG_DWORD;
-    DWORD cbData = sizeof(DWORD);
-    DWORD iData;
-
-    IF_READ_DWORD(TEXT("ColorPrevalence"))
-        SET_CHECKED(IDC_TB_USECOLORTITLE, iData);
-
-    RegCloseKey(hKey);
-}
-#endif
-
-#undef SET_CHECKED
-#undef SET_NOT_CHECKED
-#undef SET_COMBO_INDEX
-#undef IF_READ_DWORD
-#undef DWORD_TO_COMBO
-
-static void LoadStuckRects3(void)
-{
-    HKEY hKey = NULL;
-    LSTATUS result = RegOpenKeyEx(
-        HKEY_CURRENT_USER, g_StuckRects3Key, 0, KEY_READ, &hKey);
-    if (ERROR_SUCCESS != result)
+    LSTATUS status = RegOpenKeyEx(
+        HKEY_CURRENT_USER, g_stuckRectsKey, 0, KEY_READ, &hKey);
+    if (status != ERROR_SUCCESS)
         return;
 
-    DWORD type = REG_DWORD;
+    DWORD dwType;
     DWORD cbData = 48;
     BYTE stuckRects3[48];
 
-    result = RegQueryValueEx(
-        hKey, TEXT("Settings"), 0, &type, stuckRects3, &cbData);
+    status = RegQueryValueEx(
+        hKey, TEXT("Settings"), 0, &dwType, stuckRects3, &cbData);
 
-    if ((ERROR_SUCCESS == result) && (REG_BINARY == type))
+    if (status == ERROR_SUCCESS && dwType == REG_BINARY)
     {
         SendDlgItemMessage(
-            hWndDlg, IDC_TB_AUTOHIDE, BM_SETCHECK, (stuckRects3[8] == 3), 0);
+            g_hDlg, IDC_TB_AUTOHIDE, BM_SETCHECK, (stuckRects3[8] == 3), 0);
 
         SendDlgItemMessage(
-            hWndDlg, IDC_TB_LOCATION, CB_SETCURSEL, stuckRects3[12], 0);
+            g_hDlg, IDC_TB_LOCATION, CB_SETCURSEL, stuckRects3[12], 0);
     }
     else
     {
         SendDlgItemMessage(
-            hWndDlg, IDC_TB_AUTOHIDE, BM_SETCHECK, BST_UNCHECKED, 0);
+            g_hDlg, IDC_TB_AUTOHIDE, BM_SETCHECK, BST_UNCHECKED, 0);
 
         /* Default to bottom */
         SendDlgItemMessage(
-            hWndDlg, IDC_TB_LOCATION, CB_SETCURSEL, 3, 0);
+            g_hDlg, IDC_TB_LOCATION, CB_SETCURSEL, 3, 0);
     }
 
     RegCloseKey(hKey);
@@ -210,26 +154,27 @@ static void LoadStuckRects3(void)
 static void Write_StuckRects3(UINT index, BYTE value)
 {
     HKEY hKey = NULL;
-    LSTATUS result = RegOpenKeyEx(
-        HKEY_CURRENT_USER, g_StuckRects3Key, 0, KEY_READ | KEY_WRITE, &hKey);
-    if (ERROR_SUCCESS != result)
+    LSTATUS status = RegOpenKeyEx(
+        HKEY_CURRENT_USER, g_stuckRectsKey, 0, KEY_READ | KEY_WRITE, &hKey);
+    if (status != ERROR_SUCCESS)
         return;
 
     BYTE stuckRects3[48];
-    DWORD type = REG_BINARY;
+    DWORD dwType;
     DWORD cbData = 48;
 
-    result = RegQueryValueEx(
-        hKey, TEXT("Settings"), 0, &type, stuckRects3, &cbData);
-    if ((ERROR_SUCCESS == result) && (REG_BINARY == type))
+    status = RegQueryValueEx(
+        hKey, TEXT("Settings"), 0, &dwType, stuckRects3, &cbData);
+    if (status == ERROR_SUCCESS && dwType == REG_BINARY)
     {
         stuckRects3[index] = value;
-        RegSetValueEx(hKey, TEXT("Settings"), 0, type, stuckRects3, cbData);
+        RegSetValueEx(hKey, TEXT("Settings"), 0, dwType, stuckRects3, cbData);
     }
     RegCloseKey(hKey); 
 }
 
-static void SetWndIcon(void)
+static
+void SetWndIcon(void)
 {
     TCHAR szFilePath[60];
     HICON hIcon;
@@ -243,90 +188,122 @@ static void SetWndIcon(void)
     if (ExtractIconEx(szFilePath, 75, &hIcon, NULL, 1) <= 0)
         return;
 
-    SendMessage(hWndDlg, WM_SETICON, ICON_BIG, (LPARAM)hIcon);
+    SendMessage(g_hDlg, WM_SETICON, ICON_BIG, (LPARAM)hIcon);
 }
 
 static
-void SetAccentButtonColor(void)
+void InitTaskbarSettingsDlg(HWND hWnd)
 {
-    SetColorButtonColor(hWndDlg, IDC_TB_ACCENTCOLOR,
-        &hBmpColorBtn[COLOR_ACCENT], crSysColor[COLOR_ACCENT]);
-}
-
-static
-void SetDwmButtonColor(void)
-{
-    SetColorButtonColor(hWndDlg, IDC_TB_DWMCOLOR,
-        &hBmpColorBtn[COLOR_DWM], crSysColor[COLOR_DWM]);
-}
-
-static void InitTaskbarSettingsDlg(HWND hWnd)
-{
-    hWndDlg = hWnd;
-    hWndTaskbar = FindWindow(TEXT("Shell_TrayWnd"), TEXT(""));
+    g_hDlg = hWnd;
+    g_hTaskbar = FindWindow(TEXT("Shell_TrayWnd"), TEXT(""));
 
     SetWndIcon();
     InitComboboxes();
 
+    /* Disable the Restart Explorer button; it will be enabled when a setting requires it */
+    EnableWindow(GetDlgItem(hWnd, IDC_TB_RESTARTEXPLORER), FALSE);
+
     LoadTaskbarSettings();
-    LoadPersonalizeSettings();
     /*LoadDwmSettings();*/
     LoadStuckRects3();
-
-    if (LoadColorPreferenceFuncs())
-    {
-        crSysColor[COLOR_ACCENT] = GetAccentColor();
-        SetAccentButtonColor();
-    }
-    else
-    {
-        /* The functions could not be loaded, disable the button */
-        SendDlgItemMessage(hWndDlg, IDC_TB_ACCENTCOLOR,
-            BM_SETIMAGE, (WPARAM)IMAGE_BITMAP, (LPARAM)NULL);
-        EnableWindow(GetDlgItem(hWndDlg, IDC_TB_ACCENTCOLOR), FALSE);
-    }
-
-    if (LoadDwmColorizationFuncs())
-    {
-        crSysColor[COLOR_DWM] = GetDwmColor();
-        SetDwmButtonColor();
-    }
-    else
-    {
-        SendDlgItemMessage(hWndDlg, IDC_TB_DWMCOLOR, BM_SETIMAGE,
-            (WPARAM)IMAGE_BITMAP, (LPARAM)NULL);
-
-        EnableWindow(GetDlgItem(hWndDlg, IDC_TB_DWMCOLOR), FALSE);
-    }
 }
 
-static void WriteDword(const TCHAR *key, const TCHAR *value, DWORD data)
+static
+void RestartExplorer(void)
+{
+    DWORD procId[1024];
+    DWORD cbNeeded;
+
+    if (!EnumProcesses(procId, sizeof(procId), &cbNeeded))
+        return;
+
+    /* Number of process IDs returned */
+    DWORD cProc = cbNeeded / sizeof(DWORD);
+
+#define PROCESSNAME_MAX_LENGTH 13
+    TCHAR processName[PROCESSNAME_MAX_LENGTH] = TEXT("");
+
+    HANDLE hProc;
+    HMODULE hMod;
+    BOOL bKilled = FALSE;
+
+    for (UINT i = 0; i < cProc; i++)
+    {
+        hProc = OpenProcess(
+            PROCESS_QUERY_INFORMATION | PROCESS_VM_READ | PROCESS_TERMINATE,
+            FALSE, procId[i]);
+        if (!hProc)
+            continue;
+
+        if (EnumProcessModules(hProc, &hMod, sizeof(hMod), &cbNeeded))
+        {
+            GetModuleBaseName(hProc, hMod, processName, PROCESSNAME_MAX_LENGTH);
+            if (lstrcmpi(processName, TEXT("explorer.exe")) == 0)
+            {
+                bKilled |= TerminateProcess(hProc, 1);
+#if 0
+                /* Close only the first instance; if folders are opened in
+                 * separate processes, try to keep them open.
+                 * This ddoes not work if explorer was already killed, as the
+                 * shell process will have a higher PID than File Explorer...
+                 */
+                CloseHandle(hProc);
+                break;
+#endif
+            }
+        }
+
+        CloseHandle(hProc);
+    }
+
+#undef PROCESSNAME_MAX_LENGTH
+
+    if (!bKilled)
+    {
+        g_hTaskbar = FindWindow(TEXT("Shell_TrayWnd"), TEXT(""));
+        if (g_hTaskbar)
+        {
+            /* Could not kill the process, and there is a taskbar */
+            return;
+        }
+    }
+
+    Sleep(200);
+    ShellExecute(NULL, TEXT("open"), TEXT("explorer.exe"), NULL, NULL, SW_SHOWNORMAL);
+
+    Sleep(1800);
+    g_hTaskbar = FindWindow(TEXT("Shell_TrayWnd"), TEXT(""));
+}
+
+static
+void WriteDword(const TCHAR *key, const TCHAR *value, DWORD data)
 {
     HKEY hKey;
-    LSTATUS result = RegCreateKeyEx(
+    LSTATUS status = RegCreateKeyEx(
         HKEY_CURRENT_USER, key, 0, NULL, 0, KEY_SET_VALUE, NULL, &hKey, NULL);
-    if (ERROR_SUCCESS != result)
+    if (status != ERROR_SUCCESS)
         return;
 
     RegSetValueEx(hKey, value, 0, REG_DWORD, (BYTE *)&data, sizeof(DWORD));
     RegCloseKey(hKey);
 }
 
-static BOOL TaskbarSettingsDlgCommand(WORD control)
+static
+BOOL TaskbarSettingsDlgCommand(WORD control)
 {
     BYTE iData;
     
-#define GET_CHECKED() iData = \
-    (BST_CHECKED == SendDlgItemMessage(hWndDlg, control, BM_GETCHECK, 0, 0))
+#define GetChecked() iData = \
+    (SendDlgItemMessage(g_hDlg, control, BM_GETCHECK, 0, 0) == BST_CHECKED)
 
-#define GET_NOT_CHECKED() iData = \
-    (BST_CHECKED != SendDlgItemMessage(hWndDlg, control, BM_GETCHECK, 0, 0))
+#define GetUnchecked() iData = \
+    (SendDlgItemMessage(g_hDlg, control, BM_GETCHECK, 0, 0) != BST_CHECKED)
 
     switch (control)
     {
     case IDOK:
     case IDCANCEL: /* close button and Escape key */
-        EndDialog(hWndDlg, control);
+        EndDialog(g_hDlg, control);
         break;
 
     case IDC_TB_TRAYWND:
@@ -336,102 +313,46 @@ static BOOL TaskbarSettingsDlgCommand(WORD control)
         break;
 
     case IDC_TB_LOCK:
-        GET_NOT_CHECKED();
-        WriteDword(g_TaskbarCfgKey, TEXT("TaskbarSizeMove"), iData);
-        SendMessage(hWndTaskbar, WM_USER + 458, 2, iData);
+        GetUnchecked();
+        WriteDword(g_taskbarKey, TEXT("TaskbarSizeMove"), iData);
+        SendNotifyMessage(g_hTaskbar, WM_USER + 458, 2, iData);
         break;
 
     case IDC_TB_SMBTN:
-        GET_CHECKED();
-        WriteDword(g_TaskbarCfgKey, TEXT("TaskbarSmallIcons"), iData);
-        SendMessage(
-            hWndTaskbar, WM_SETTINGCHANGE, 0L, (LPARAM)TEXT("TraySettings"));
+        GetChecked();
+        WriteDword(g_taskbarKey, TEXT("TaskbarSmallIcons"), iData);
+        SendNotifyMessage(
+            HWND_BROADCAST, WM_SETTINGCHANGE, 0L, (LPARAM)TEXT("TraySettings"));
         break;
 
     case IDC_TB_PEEK:
-        GET_NOT_CHECKED();
-        WriteDword(g_TaskbarCfgKey, TEXT("DisablePreviewDesktop"), iData);
-        SendMessage(
-            hWndTaskbar, WM_SETTINGCHANGE, 0L, (LPARAM)TEXT("TraySettings"));
+        GetUnchecked();
+        WriteDword(g_taskbarKey, TEXT("DisablePreviewDesktop"), iData);
+        SendNotifyMessage(
+            HWND_BROADCAST, WM_SETTINGCHANGE, 0L, (LPARAM)TEXT("TraySettings"));
         break;
 
     case IDC_TB_ALLDISPLAYS:
-        GET_CHECKED();
-        WriteDword(g_TaskbarCfgKey, TEXT("MMTaskbarEnabled"), iData);
-        SendMessage(
-            hWndTaskbar, WM_SETTINGCHANGE, 0L, (LPARAM)TEXT("TraySettings"));
+        GetChecked();
+        WriteDword(g_taskbarKey, TEXT("MMTaskbarEnabled"), iData);
+        SendNotifyMessage(
+            HWND_BROADCAST, WM_SETTINGCHANGE, 0L, (LPARAM)TEXT("TraySettings"));
         break;
 
     case IDC_TB_WINXPS:
-        GET_NOT_CHECKED();
-        /* TODO: Figure out how to set it programatically */
-        WriteDword(g_TaskbarCfgKey, TEXT("DontUsePowerShellOnWinX"), iData);
-        break;
-
-#if 0
-    case IDC_TB_SYSDARK:
-        /* 1903 */
-        GET_NOT_CHECKED();
-        WriteDword(g_PersonalizeKey, TEXT("SystemUsesLightTheme"), iData);
-        EnableWindow(hWndRestartExp, TRUE);
-        break;
-
-    case IDC_TB_APPDARK:
-        GET_NOT_CHECKED();
-        WriteDword(g_PersonalizeKey, TEXT("AppsUseLightTheme"), iData);
-        EnableWindow(hWndRestartExp, TRUE);
-        break;
-
-    case IDC_TB_USECOLORTITLE:
-        GET_CHECKED();
-        WriteDword(TEXT("SOFTWARE\\Microsoft\\Windows\\DWM"),
-            TEXT("ColorPrevalence"), iData);
-        EnableWindow(hWndRestartExp, TRUE);
-        break;
-#endif
-
-    case IDC_TB_TRANSP:
-        GET_CHECKED();
-        WriteDword(g_PersonalizeKey, TEXT("EnableTransparency"), iData);
-        SendMessage(hWndTaskbar, WM_SETTINGCHANGE,
-            0L, (LPARAM)TEXT("ImmersiveColorSet"));
-        break;
-
-    case IDC_TB_USEACCENTCOLOR:
-        GET_CHECKED();
-        WriteDword(g_PersonalizeKey, TEXT("ColorPrevalence"), iData);
-        SendMessage(hWndTaskbar, WM_SETTINGCHANGE,
-            0L, (LPARAM)TEXT("ImmersiveColorSet"));
+        GetUnchecked();
+        WriteDword(g_taskbarKey, TEXT("DontUsePowerShellOnWinX"), iData);
+        EnableWindow(GetDlgItem(g_hDlg, IDC_TB_RESTARTEXPLORER), TRUE);
         break;
 
     case IDC_TB_AUTOHIDE:
-        GET_CHECKED();
+        GetChecked();
         Write_StuckRects3(8, 2 + iData);
-        SendMessage(hWndTaskbar, WM_USER + 458, 4, iData);
+        SendNotifyMessage(g_hTaskbar, WM_USER + 458, 4, iData);
         break;
 
-    case IDC_TB_ACCENTCOLOR:
-        if (!PickColor(hWndDlg, &crSysColor[COLOR_ACCENT])) break;
-
-        SetAccentColor(crSysColor[COLOR_ACCENT]);
-        SetAccentButtonColor();
-        /* it also sets the DWM color */
-#if 0
-        /* update the DWM color and button too */
-        crSysColor[COLOR_DWM] = GetDwmColor();
-        UpdateButtonColor(hWndDlg, IDC_TB_DWMCOLOR,
-            hbmpBtnColor[COLOR_DWM], crSysColor[COLOR_DWM]);
-#else
-        /* leave the DWM color as it was */
-        SetDwmColor(crSysColor[COLOR_DWM]);
-#endif
-        break;
-
-    case IDC_TB_DWMCOLOR:
-        if (!PickColor(hWndDlg, &crSysColor[COLOR_DWM])) break;
-
-        SetDwmColor(crSysColor[COLOR_DWM]);
-        SetDwmButtonColor();
+    case IDC_TB_RESTARTEXPLORER:
+        RestartExplorer();
         break;
 
     default:
@@ -440,45 +361,46 @@ static BOOL TaskbarSettingsDlgCommand(WORD control)
 
     return TRUE;
 
-#undef GET_CHECKED
-#undef GET_NOT_CHECKED
+#undef GetChecked
+#undef GetUnchecked
 }
 
-static BOOL TaskbarSettingsDlgCombo(WORD control)
+static
+BOOL TaskbarSettingsDlgCombo(WORD control)
 {
     BYTE iPos;
 
-#define GET_COMBO_INDEX() \
-    iPos = (BYTE)SendDlgItemMessage(hWndDlg, control, CB_GETCURSEL, 0, 0)
+#define GetComboIndex() \
+    iPos = (BYTE)SendDlgItemMessage(g_hDlg, control, CB_GETCURSEL, 0, 0)
 
-#define WRITE_COMBO_INDEX(value) \
-    GET_COMBO_INDEX(); \
-    WriteDword(g_TaskbarCfgKey, value, iPos)
+#define WriteComboIndex(value) \
+    GetComboIndex(); \
+    WriteDword(g_taskbarKey, value, iPos)
 
     switch (control)
     {
     case IDC_TB_LOCATION:
-        GET_COMBO_INDEX();
+        GetComboIndex();
         Write_StuckRects3(12, iPos);
-        SendMessage(hWndTaskbar, WM_USER + 458, 6, iPos);
+        SendNotifyMessage(g_hTaskbar, WM_USER + 458, 6, iPos);
         break;
 
     case IDC_TB_COMBINEBTN:
-        WRITE_COMBO_INDEX(TEXT("TaskbarGlomLevel"));
-        SendMessage(
-            hWndTaskbar, WM_SETTINGCHANGE, 0L, (LPARAM)TEXT("TraySettings"));
+        WriteComboIndex(TEXT("TaskbarGlomLevel"));
+        SendNotifyMessage(
+            HWND_BROADCAST, WM_SETTINGCHANGE, 0L, (LPARAM)TEXT("TraySettings"));
         break;
 
     case IDC_TB_MMDISPLAYS:
-        WRITE_COMBO_INDEX(TEXT("MMTaskbarMode"));
-        SendMessage(
-            hWndTaskbar, WM_SETTINGCHANGE, 0L, (LPARAM)TEXT("TraySettings"));
+        WriteComboIndex(TEXT("MMTaskbarMode"));
+        SendNotifyMessage(
+            HWND_BROADCAST, WM_SETTINGCHANGE, 0L, (LPARAM)TEXT("TraySettings"));
         break;
 
     case IDC_TB_MMCOMBINEBTN:
-        WRITE_COMBO_INDEX(TEXT("MMTaskbarGlomLevel"));
-        SendMessage(
-            hWndTaskbar, WM_SETTINGCHANGE, 0L, (LPARAM)TEXT("TraySettings"));
+        WriteComboIndex(TEXT("MMTaskbarGlomLevel"));
+        SendNotifyMessage(
+            HWND_BROADCAST, WM_SETTINGCHANGE, 0L, (LPARAM)TEXT("TraySettings"));
         break;
 
     default:
@@ -486,8 +408,8 @@ static BOOL TaskbarSettingsDlgCombo(WORD control)
     }
 
     return TRUE;
-#undef GET_COMBO_INDEX
-#undef WRITE_COMBO_INDEX
+#undef GetComboIndex
+#undef WriteComboIndex
 }
 
 INT_PTR CALLBACK TaskbarSettingsDlgProc(
@@ -499,11 +421,6 @@ INT_PTR CALLBACK TaskbarSettingsDlgProc(
     {
     case WM_INITDIALOG:
         InitTaskbarSettingsDlg(hWnd);
-        break;
-
-    case WM_DESTROY:
-        UnloadColorPreferenceFuncs();
-        UnloadDwmColorizationFuncs();
         break;
 
     case WM_COMMAND:

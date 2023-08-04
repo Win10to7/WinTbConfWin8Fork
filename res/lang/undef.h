@@ -24,14 +24,7 @@
 #undef S_TB_NAVIGATION
 #undef S_TB_WINXPS
 
-#undef S_TB_APPEARANCE
-#undef S_TB_SYSDARK
-#undef S_TB_APPDARK
-#undef S_TB_TRANSP
-#undef S_TB_USEACCENTCOLOR
-#undef S_TB_ACCENTCOLOR
-#undef S_TB_DWMCOLOR
-
+#undef S_TB_RESTARTEXPLORER
 #undef S_OK
 
 #undef S_TB_POS_L

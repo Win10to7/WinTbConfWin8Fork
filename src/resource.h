@@ -8,28 +8,22 @@
 #define IDC_STATIC  -1
 
 /* Dialog */
-#define IDD_TASKBAR  10
+#define IDD_TB  10
 
 /* Controls */
-#define IDC_TB_LOCK            100
-#define IDC_TB_AUTOHIDE        101
-#define IDC_TB_SMBTN           102
-#define IDC_TB_LOCATION        103
-#define IDC_TB_COMBINEBTN      104
-#define IDC_TB_TRAYWND         105
-#define IDC_TB_PEEK            106
-#define IDC_TB_ALLDISPLAYS     107
-#define IDC_TB_MMDISPLAYS      108
-#define IDC_TB_MMCOMBINEBTN    109
-#define IDC_TB_WINXPS          110
-#define IDC_TB_TRANSP          111
-#define IDC_TB_USEACCENTCOLOR  112
-#define IDC_TB_ACCENTCOLOR     113
-#define IDC_TB_DWMCOLOR        114
-#if 0
-#define IDC_TB_SYSDARK         115
-#define IDC_TB_APPDARK         116
-#endif
+
+#define IDC_TB_LOCK             100
+#define IDC_TB_AUTOHIDE         101
+#define IDC_TB_SMBTN            102
+#define IDC_TB_LOCATION         103
+#define IDC_TB_COMBINEBTN       104
+#define IDC_TB_TRAYWND          105
+#define IDC_TB_PEEK             106
+#define IDC_TB_ALLDISPLAYS      107
+#define IDC_TB_MMDISPLAYS       108
+#define IDC_TB_MMCOMBINEBTN     109
+#define IDC_TB_WINXPS           110
+#define IDC_TB_RESTARTEXPLORER  111
 
 /* Combobox list item strings */
 #define IDS_TB_POS_L      200

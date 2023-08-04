@@ -24,15 +24,8 @@
 #define S_TB_NAVIGATION  "Navigation"
 #define S_TB_WINXPS      "Replace Command Prompt with PowerShell in the menu when right-clicking the start button or pressing Windows+X"
 
-#define S_TB_APPEARANCE      "Appearance"
-#define S_TB_SYSDARK         "Dark taskbar theme"
-#define S_TB_APPDARK         "Dark apps theme"
-#define S_TB_TRANSP          "Use transparency"
-#define S_TB_USEACCENTCOLOR  "Show accent color on the taskbar"
-#define S_TB_ACCENTCOLOR     "Accent color:"
-#define S_TB_DWMCOLOR        "Window color:"
-
-#define S_OK          "OK"
+#define S_TB_RESTARTEXPLORER  "Restart Explorer"
+#define S_OK                  "OK"
 
 #define S_TB_POS_L      "Left"
 #define S_TB_POS_T      "Top"

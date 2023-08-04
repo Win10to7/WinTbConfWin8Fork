@@ -6,7 +6,7 @@
 #define FILE_COPYRIGHT    "Licenciado bajo la GPLv2"
 #define PRODUCT_NAME      "Propiedades de la Barra de Tareas"
 
-#define S_TB                    "Barra de Tareas"
+#define S_TB                    "Barra de tareas"
 #define S_TB_LOCK               "&Bloquear la barra de tareas"
 #define S_TB_AUTOHIDE           "Ocultar a&utomáticamente la barra de tareas"
 #define S_TB_SMBTN              "Us&ar botones pequeños"
@@ -24,15 +24,8 @@
 #define S_TB_NAVIGATION  "Navegación"
 #define S_TB_WINXPS      "Reemplazar la Consola de Comandos por PowerShell en el menú al hacer clic derecho en el menú inicio o presionar Windows+X"
 
-#define S_TB_APPEARANCE      "Apariencia"
-#define S_TB_SYSDARK         "Tema de barra de tareas oscuro"
-#define S_TB_APPDARK         "Tema de apps oscuro"
-#define S_TB_TRANSP          "Usar transparencia"
-#define S_TB_USEACCENTCOLOR  "Mostrar color de acento en la barra de tareas"
-#define S_TB_ACCENTCOLOR     "Color de acento:"
-#define S_TB_DWMCOLOR        "Color de ventana:"
-
-#define S_OK          "Aceptar"
+#define S_TB_RESTARTEXPLORER  "Reiniciar Explorer"
+#define S_OK                  "Aceptar"
 
 #define S_TB_POS_L      "Izquierda"
 #define S_TB_POS_T      "Arriba"

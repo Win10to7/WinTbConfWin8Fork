@@ -5,9 +5,10 @@
  * PROGRAMMER: Franco Tortoriello (torto09@gmail.com)
  */
 
+#include "resource.h"
+
 #define WIN32_LEAN_AND_MEAN
 #include <Windows.h>
-#include "resource.h"
 
 /* In wndtb.c */
 INT_PTR CALLBACK TaskbarSettingsDlgProc(
@@ -23,7 +24,7 @@ void WINAPI _main(void)
 {
     g_hInstance = GetModuleHandle(NULL);
 
-    DialogBoxParam(g_hInstance, MAKEINTRESOURCE(IDD_TASKBAR),
+    DialogBoxParam(g_hInstance, MAKEINTRESOURCE(IDD_TB),
         NULL, TaskbarSettingsDlgProc, 0);
     ExitProcess(0);
 }

@@ -8,13 +8,9 @@
   <Import Project="$(SolutionDir)Exe.props" />
   <Import Project="$(ProjectDir)$(ProjectName).props" />
   <ItemGroup>
-    <ClInclude Include="..\src\colorbtn.h" />
-    <ClInclude Include="..\src\dwmutil.h" />
     <ClInclude Include="..\src\resource.h" />
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="..\src\colorbtn.c" />
-    <ClCompile Include="..\src\dwmutil.c" />
     <ClCompile Include="..\src\main.c" />
     <ClCompile Include="..\src\wndtb.c" />
   </ItemGroup>
