@@ -6,12 +6,17 @@
 #undef FILE_COPYRIGHT
 #undef PRODUCT_NAME
 
+#undef S_ERROR
+#undef S_ERROR_GENERIC
+#undef S_ERROR_MEM
+
 #undef S_TB
 #undef S_TB_LOCK
 #undef S_TB_AUTOHIDE
-#undef S_TB_SMBTN
+#undef S_TB_SMALLBUTTONS
+#undef S_TB_BADGES
 #undef S_TB_LOCATION
-#undef S_TB_COMBINEBTN
+#undef S_TB_COMBINEBUTTONS
 #undef S_TB_TRAYWND
 #undef S_TB_TRAYWND_CUSTOMIZE
 #undef S_TB_PEEK
@@ -19,13 +24,13 @@
 #undef S_TB_MM
 #undef S_TB_ALLDISPLAYS
 #undef S_TB_MMDISPLAYS
-#undef S_TB_MMCOMBINEBTN
+#undef S_TB_MMCOMBINEBUTTONS
 
-#undef S_TB_NAVIGATION
-#undef S_TB_WINXPS
-
-#undef S_TB_RESTARTEXPLORER
-#undef S_OK
+#undef S_MISC
+#undef S_MISC_NAVIGATION
+#undef S_MISC_WINXPOWERSHELL
+#undef S_MISC_RESTARTHELP
+#undef S_MISC_RESTARTEXPLORER
 
 #undef S_TB_POS_L
 #undef S_TB_POS_T

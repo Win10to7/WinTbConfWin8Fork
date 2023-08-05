@@ -2,6 +2,9 @@
 
 #define APSTUDIO_READONLY_SYMBOLS
 
+#ifndef APSTUDIO_INVOKED
+#include "../src/config.h"
+#endif
 #include "../src/resource.h"
 
 #define APSTUDIO_HIDDEN_SYMBOLS
@@ -11,6 +14,12 @@
 #undef APSTUDIO_HIDDEN_SYMBOLS
 
 #undef APSTUDIO_READONLY_SYMBOLS
+
+#define DIALOG_FONTNAME "Segoe UI"
+#define DIALOG_FONTSIZE 9
+
+#define PAGE_WIDTH 227
+#define PAGE_HEIGHT 241
 
 /* Style definitions */
 
@@ -24,4 +33,7 @@ LANGUAGE LANG_ENGLISH, SUBLANG_ENGLISH_US
 CREATEPROCESS_MANIFEST_RESOURCE_ID RT_MANIFEST "TbConf.exe.manifest"
 
 #include "lang/en-US.h"
+
+#if !defined(MINIMAL)
 #include "lang/es-ES.h"
+#endif

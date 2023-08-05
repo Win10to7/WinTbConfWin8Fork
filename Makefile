@@ -13,15 +13,14 @@ MY_CPPFLAGS = -D_WINDOWS -DWINVER=0x0A00 -D_WIN32_WINNT=0x0A00 \
 
 MY_LDFLAGS = -s \
 	-nostdlib -Wl,-e__main -Wl,--enable-stdcall-fixup \
-	-lAdvapi32 -lComDlg32 -lGdi32 -lKernel32 -lShell32 -lUser32 \
+	-lComCtl32 \
 	-Wl,-subsystem,windows:6.2
 
 OBJ = \
 	src/main.obj \
-	src/mincrt.obj \
+	src/util.obj \
 	src/wndtb.obj \
-	src/colorbtn.obj \
-	src/dwmutil.obj \
+	src/wndmisc.obj \
 
 RES = res/app.res
 

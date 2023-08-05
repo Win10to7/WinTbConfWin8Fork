@@ -15,7 +15,16 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="..\src\config.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\app.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
     <ClInclude Include="..\src\resource.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\util.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
@@ -23,7 +32,13 @@
     <ClCompile Include="..\src\main.c">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="..\src\util.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
     <ClCompile Include="..\src\wndtb.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\wndmisc.c">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
