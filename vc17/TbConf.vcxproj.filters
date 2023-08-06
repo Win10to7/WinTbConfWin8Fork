@@ -38,7 +38,7 @@
     <ClCompile Include="..\src\wndtb.c">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\src\wndmisc.c">
+    <ClCompile Include="..\src\wndadv.c">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>

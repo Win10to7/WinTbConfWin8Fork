@@ -15,9 +15,9 @@
 PROPSHEET g_propSheet;
 
 /* Property sheet dialog proc forward definitions */
-INT_PTR CALLBACK TaskbarPageProc(
+INT_PTR CALLBACK GeneralPageProc(
     HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam);
-INT_PTR CALLBACK MiscPageProc(
+INT_PTR CALLBACK AdvancedPageProc(
     HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam);
 
 static
@@ -90,8 +90,8 @@ _Success_(return < RETURN_ERROR)
     psh.phpage = hpsp;
     psh.pfnCallback = PropSheetProc;
 
-    InitPage(&psh, IDD_TB, TaskbarPageProc);
-    InitPage(&psh, IDD_MISC, MiscPageProc);
+    InitPage(&psh, IDD_TB, GeneralPageProc);
+    InitPage(&psh, IDD_ADV, AdvancedPageProc);
 
     INT_PTR ret = PropertySheet(&psh);
 

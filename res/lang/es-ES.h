@@ -10,7 +10,9 @@
 #define S_ERROR_GENERIC  "Ha ocurrido un error"
 #define S_ERROR_MEM      "No se pudo reservar memoria"
 
-#define S_TB                    "Barra de tareas"
+#define S_TB  "Configuración general"
+
+#define S_TB_TB                 "Barra de tareas"
 #define S_TB_LOCK               "&Bloquear la barra de tareas"
 #define S_TB_AUTOHIDE           "Ocultar a&utomáticamente la barra de tareas"
 #define S_TB_SMALLBUTTONS       "Us&ar botones pequeños"
@@ -19,18 +21,29 @@
 #define S_TB_COMBINEBUTTONS     "Combinar botones:"
 #define S_TB_TRAYWND            "Área de notificación:"
 #define S_TB_TRAYWND_CUSTOMIZE  "&Personalizar..."
-#define S_TB_PEEK               "Usar &Peek para previsualizar el escritorio cuando mueve el cursor sobre el botón Mostrar escritorio al final de la barra de tareas"
+#define S_TB_PEEK               "Usar Peek para previsualizar el escritorio cuando mueve el cursor sobre el botón Mostrar escritorio al final de la barra de tareas"
 
 #define S_TB_MM                "Múltiples pantallas"
 #define S_TB_ALLDISPLAYS       "&Mostrar barra de tareas en todas las pantallas"
 #define S_TB_MMDISPLAYS        "Mostrar botones en:"
 #define S_TB_MMCOMBINEBUTTONS  "Combinar botones en &otras barras de tareas:"
 
-#define S_MISC                  "Varios"
-#define S_MISC_NAVIGATION       "Navegación"
-#define S_MISC_WINXPOWERSHELL   "Reemplazar la Consola de Comandos por PowerShell en el menú al hacer clic derecho en el menú inicio o presionar Windows+X *"
-#define S_MISC_RESTARTHELP      "* Require reiniciar Explorer luego de aplicar para que surja efecto."
-#define S_MISC_RESTARTEXPLORER  "<A ID=""restart"">Reiniciar Explorer</A>"
+#define S_ADV  "Configuración avanzada"
+
+#define S_ADV_PERFORMANCE     "Rendimiento"
+#define S_ADV_ANIMATIONS      "Habilitar &animaciones adicionales"
+#define S_ADV_SAVETHUMBNAILS  "Guardar &miniaturas de vistas previas de ventanas"
+
+#define S_ADV_NAVIGATION      "Navegación"
+#define S_ADV_WINXPOWERSHELL  "Reemplazar la Consola de Comandos por &PowerShell en el menú al hacer clic derecho en el menú inicio o presionar Windows+X *"
+
+#define S_ADV_MISC            "Varios"
+#define S_ADV_SHOWDESKTOP     "Habilitar botón Mostrar &escritorio **"
+#define S_ADV_TOGGLEAUTOHIDE  "Alternar &ocultar la barra de tareas al hacerle doble clic **"
+
+#define S_ADV_RESTARTEXPLORER_T  "* Require reiniciar Explorer luego de aplicar para que surja efecto"
+#define S_ADV_EXPLORERPATCHER_T  "** Requiere ExplorerPatcher o software similar"
+#define S_ADV_RESTARTEXPLORER    "<A ID=""restart"">Reiniciar Explorer</A>"
 
 #define S_TB_POS_L      "Izquierda"
 #define S_TB_POS_T      "Arriba"

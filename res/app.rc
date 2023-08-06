@@ -18,8 +18,8 @@
 #define DIALOG_FONTNAME "Segoe UI"
 #define DIALOG_FONTSIZE 9
 
-#define PAGE_WIDTH 227
-#define PAGE_HEIGHT 241
+#define PAGE_WIDTH 230
+#define PAGE_HEIGHT 240
 
 /* Style definitions */
 

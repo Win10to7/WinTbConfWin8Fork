@@ -20,7 +20,7 @@ OBJ = \
 	src/main.obj \
 	src/util.obj \
 	src/wndtb.obj \
-	src/wndmisc.obj \
+	src/wndadv.obj \
 
 RES = res/app.res
 

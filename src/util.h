@@ -12,4 +12,6 @@ int AllocAndLoadString(_Out_ TCHAR **pTarget, UINT id);
 
 int ShowMessageFromResource(HWND hWnd, int msgId, int titleMsgId, UINT type);
 
+void SetCustomVisualFx(void);
+
 #endif  /* !defined(UTIL_H) */

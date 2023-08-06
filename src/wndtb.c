@@ -1,12 +1,13 @@
 /*
  * COPYRIGHT: See COPYING in the top level directory
- * PURPOSE:   Taskbar property page
+ * PURPOSE:   General taskbar property page
  *
  * PROGRAMMER: Franco Tortoriello (torto09@gmail.com)
  */
 
 #include "app.h"
 #include "resource.h"
+#include "util.h"
 
 #include <CommCtrl.h>
 #include <shellapi.h>
@@ -26,26 +27,26 @@ typedef struct tagTBSETTINGS
     DWORD bAutoHide;
     DWORD bSmallButtons;
     DWORD bBadges;
+    DWORD iCombineButtons;
     DWORD bPeek;
     DWORD bAllDisplays;
-    BYTE iLocation;
-    DWORD iCombineButtons;
     DWORD iMmDisplays;
     DWORD iMmCombineButtons;
+    BYTE iLocation;
 } TBSETTINGS;
 
 static const TBSETTINGS g_defSettings =
 {
-    TRUE,   /* bLock */
-    FALSE,  /* bAutoHide */
-    FALSE,  /* bSmallButtons */
-    FALSE,  /* bBadges */
-    FALSE,  /* bPeek */
-    TRUE,   /* bAllDisplays */
-    3,      /* iLocation - Bottom */
-    0,      /* iCombineButtons */
-    0,      /* iMmDisplays */
-    0       /* iMmCombineButtons */
+    1,  /* bLock */
+    0,  /* bAutoHide */
+    0,  /* bSmallButtons */
+    0,  /* iCombineButtons */
+    0,  /* bBadges */
+    0,  /* bPeek */
+    1,  /* bAllDisplays */
+    0,  /* iMmDisplays */
+    0,  /* iMmCombineButtons */
+    3   /* iLocation - Bottom */
 };
 
 static TBSETTINGS g_oldSettings;
@@ -55,7 +56,7 @@ static HWND g_hDlg;
 
 #define SetChecked(iControl, bChecked) \
     SendDlgItemMessage(g_hDlg, iControl, \
-        BM_SETCHECK, (WPARAM)(bChecked == TRUE), 0L)
+        BM_SETCHECK, (WPARAM)(bChecked == 1), 0L)
 
 #define SetComboIndex(iControl, index) \
     SendDlgItemMessage(g_hDlg, iControl, CB_SETCURSEL, (WPARAM)index, 0L)
@@ -174,7 +175,7 @@ void LoadDwmSettings(void)
 }
 
 static
-void LoadSettings()
+void LoadSettings(void)
 {
     g_oldSettings = g_defSettings;
 
@@ -265,7 +266,7 @@ Error:
 }
 
 #define HasChanged(member) \
-    g_newSettings.member != g_oldSettings.member
+    (g_newSettings.member != g_oldSettings.member)
 
 _Success_(return)
 static
@@ -354,24 +355,20 @@ void WriteDwmSettings(void)
 static
 void ApplyExplorerSettings(void)
 {
-    BOOL bSendSettingChange = HasChanged(bSmallButtons) ||
+    BOOL bSendSettingChange = (HasChanged(bSmallButtons) ||
         HasChanged(bBadges) || HasChanged(iCombineButtons) ||
         HasChanged(bPeek) || HasChanged(bAllDisplays) ||
-        HasChanged(iMmDisplays) || HasChanged(iMmCombineButtons);
+        HasChanged(iMmDisplays) || HasChanged(iMmCombineButtons));
 
-    /* Apply them always, in case the Lock setting was changed externally. */
-#if 0
     BOOL bExplorerSettingsChanged = bSendSettingChange || HasChanged(bLock);
 
     if (!bExplorerSettingsChanged)
         return;
-#endif
 
     if (!WriteExplorerSettings())
     {
         /* An error has ocurred, show previous settings */
         UpdateExplorerControls();
-        return;
     }
 
     if (HasChanged(bPeek) && g_newSettings.bPeek)
@@ -380,6 +377,7 @@ void ApplyExplorerSettings(void)
          * it less confusing.
          */
         WriteDwmSettings();
+        SetCustomVisualFx();
     }
 
     if (bSendSettingChange)
@@ -414,6 +412,9 @@ void ApplyStuckRectsSettings(void)
         return;
     }
 
+    if (!(HasChanged(bAutoHide) || HasChanged(iLocation)))
+        return;
+
     HWND hTaskbar = FindWindow(TEXT("Shell_TrayWnd"), TEXT(""));
     if (!hTaskbar)
         return;
@@ -425,6 +426,8 @@ void ApplyStuckRectsSettings(void)
         SendNotifyMessage(hTaskbar, WM_USER + 458, 6, g_newSettings.iLocation);
 }
 
+#undef HasChanged
+
 static
 void ApplySettings(void)
 {
@@ -432,8 +435,6 @@ void ApplySettings(void)
     ApplyStuckRectsSettings();
     g_oldSettings = g_newSettings;
 }
-
-#undef HasChanged
 
 static
 void HandleCommand(WORD iControl)
@@ -517,7 +518,7 @@ void HandleComboBoxSelChange(WORD iControl)
 #undef GetComboIndex
 }
 
-INT_PTR CALLBACK TaskbarPageProc(
+INT_PTR CALLBACK GeneralPageProc(
     HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 {
     switch (uMsg)
@@ -556,6 +557,7 @@ INT_PTR CALLBACK TaskbarPageProc(
 
         return 0;
 
+#if 0
     case WM_SETTINGCHANGE:
         if (lstrcmpi((TCHAR *)lParam, TEXT("TraySettings")) == 0)
         {
@@ -563,19 +565,11 @@ INT_PTR CALLBACK TaskbarPageProc(
             break;
         }
         break;
-
-    case WM_QUERYENDSESSION:
-        /* Contrary to what the documentation says, without this shutdown is
-         * prevented, at least from W95 to 7...
-         */
-        return 0;
-
-    case WM_CTLCOLORDLG:
-        /* Returning any other value paints the property sheet pages with an
-         * incorrect background color.
-         */
-        return 0;
+#endif
     }
 
-    return DefWindowProc(hWnd, uMsg, wParam, lParam);
+    /* Returning DefWindowProc(hWnd, uMsg, wParam, lParam) causes visual and
+     * other issues.
+     */
+    return 0;
 }

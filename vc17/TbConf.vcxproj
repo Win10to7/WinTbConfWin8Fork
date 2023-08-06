@@ -17,7 +17,7 @@
     <ClCompile Include="..\src\main.c" />
     <ClCompile Include="..\src\util.c" />
     <ClCompile Include="..\src\wndtb.c" />
-    <ClCompile Include="..\src\wndmisc.c" />
+    <ClCompile Include="..\src\wndadv.c" />
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="..\res\app.rc" />

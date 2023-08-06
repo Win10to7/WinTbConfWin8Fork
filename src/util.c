@@ -79,3 +79,22 @@ int ShowMessageFromResource(HWND hWnd, int msgId, int titleMsgId, UINT type)
     Free(msgTitle);
     return ret;
 }
+
+/* Set the Performance Visual Effects preset to "custom", so that those settings
+ * are reflected in the system property sheet page.
+ */
+void SetCustomVisualFx(void)
+{
+    HKEY hKey;
+    LSTATUS status = RegCreateKeyEx(HKEY_CURRENT_USER,
+        TEXT("SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Explorer\\VisualEffects"),
+        0, NULL, 0, KEY_SET_VALUE, NULL, &hKey, NULL);
+    if (status != ERROR_SUCCESS)
+        return;
+
+    DWORD value = 3;
+    RegSetValueEx(hKey, TEXT("VisualFXSetting"), 0, REG_DWORD,
+        (BYTE *)&value, sizeof(DWORD));
+
+    RegCloseKey(hKey);
+}

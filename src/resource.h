@@ -9,11 +9,11 @@
 
 /* Dialogs */
 #define IDD_TB    10
-#define IDD_MISC  20
+#define IDD_ADV  20
 
 /* Controls */
 
-/* Taskbar page */
+/* General page */
 #define IDC_TB_LOCK              100
 #define IDC_TB_AUTOHIDE          101
 #define IDC_TB_SMALLBUTTONS      102
@@ -26,8 +26,12 @@
 #define IDC_TB_MMDISPLAYS        109
 #define IDC_TB_MMCOMBINEBUTTONS  110
 
-/* Misc page */
-#define IDC_MISC_WINXPOWERSHELL   100
+/* Advanced page */
+#define IDC_ADV_ANIMATIONS      100
+#define IDC_ADV_SAVETHUMBNAILS  101
+#define IDC_ADV_WINXPOWERSHELL  102
+#define IDC_ADV_SHOWDESKTOP     103
+#define IDC_ADV_TOGGLEAUTOHIDE  104
 
 /* Strings */
 
