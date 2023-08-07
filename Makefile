@@ -18,6 +18,7 @@ MY_LDFLAGS = -s \
 
 OBJ = \
 	src/main.obj \
+	src/mincrt.obj \
 	src/util.obj \
 	src/wndtb.obj \
 	src/wndadv.obj \

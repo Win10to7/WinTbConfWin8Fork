@@ -11,10 +11,12 @@
     <ClInclude Include="..\src\config.h" />
     <ClInclude Include="..\src\app.h" />
     <ClInclude Include="..\src\resource.h" />
+    <ClInclude Include="..\src\mincrt.h" />
     <ClInclude Include="..\src\util.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\src\main.c" />
+    <ClCompile Include="..\src\mincrt.c" />
     <ClCompile Include="..\src\util.c" />
     <ClCompile Include="..\src\wndtb.c" />
     <ClCompile Include="..\src\wndadv.c" />

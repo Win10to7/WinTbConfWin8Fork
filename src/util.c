@@ -92,9 +92,9 @@ void SetCustomVisualFx(void)
     if (status != ERROR_SUCCESS)
         return;
 
-    DWORD value = 3;
+    DWORD dwData = 3;
     RegSetValueEx(hKey, TEXT("VisualFXSetting"), 0, REG_DWORD,
-        (BYTE *)&value, sizeof(DWORD));
+        (BYTE *)&dwData, sizeof(DWORD));
 
     RegCloseKey(hKey);
 }

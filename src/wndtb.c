@@ -23,49 +23,28 @@ static const TCHAR g_dwmKey[] =
 
 typedef struct tagTBSETTINGS
 {
-    DWORD bLock;
-    DWORD bAutoHide;
-    DWORD bSmallButtons;
-    DWORD bBadges;
-    DWORD iCombineButtons;
-    DWORD bPeek;
-    DWORD bAllDisplays;
-    DWORD iMmDisplays;
-    DWORD iMmCombineButtons;
+    BOOL bLock;
+    BOOL bAutoHide;
+    BOOL bSmallButtons;
+    BOOL bBadges;
+    int  iCombineButtons;
+    BOOL bPeek;
+    BOOL bAllDisplays;
+    int  iMmDisplays;
+    int  iMmCombineButtons;
     BYTE iLocation;
 } TBSETTINGS;
-
-static const TBSETTINGS g_defSettings =
-{
-    1,  /* bLock */
-    0,  /* bAutoHide */
-    0,  /* bSmallButtons */
-    0,  /* iCombineButtons */
-    0,  /* bBadges */
-    0,  /* bPeek */
-    1,  /* bAllDisplays */
-    0,  /* iMmDisplays */
-    0,  /* iMmCombineButtons */
-    3   /* iLocation - Bottom */
-};
 
 static TBSETTINGS g_oldSettings;
 static TBSETTINGS g_newSettings;
 
 static HWND g_hDlg;
 
-#define SetChecked(iControl, bChecked) \
-    SendDlgItemMessage(g_hDlg, iControl, \
-        BM_SETCHECK, (WPARAM)(bChecked == 1), 0L)
-
-#define SetComboIndex(iControl, index) \
-    SendDlgItemMessage(g_hDlg, iControl, CB_SETCURSEL, (WPARAM)index, 0L)
-
 static
 void InitComboBoxes(void)
 {
     int iElement;
-    TCHAR text[60];
+    TCHAR text[60] = TEXT("\0");
 
 #define InitCombo(iControl, iString, nElements) \
     for (iElement = 0; iElement < nElements; iElement++) { \
@@ -83,44 +62,62 @@ void InitComboBoxes(void)
 }
 
 static
+void LoadDefaultSettings(void)
+{
+    g_oldSettings.bLock             = TRUE;
+    g_oldSettings.bAutoHide         = FALSE;
+    g_oldSettings.bSmallButtons     = FALSE;
+    g_oldSettings.iCombineButtons   = 0;
+    g_oldSettings.bBadges           = FALSE;
+    g_oldSettings.bPeek             = FALSE;
+    g_oldSettings.bAllDisplays      = TRUE;
+    g_oldSettings.iMmDisplays       = 0;
+    g_oldSettings.iMmCombineButtons = 0;
+    g_oldSettings.iLocation         = 3;  /* Bottom */
+}
+
+static
 void LoadExplorerSettings(void)
 {
     HKEY hKey;
+    DWORD dwType;
+    DWORD dwData = 0;
+    DWORD dwSize;
+
+#define ReadDword(valueName) \
+    dwSize = sizeof(DWORD); \
+    status = RegQueryValueEx( \
+        hKey, valueName, 0, &dwType, (BYTE *)&dwData, &dwSize)
+
+#define ReadInt(valueName, member) \
+    ReadDword(valueName); \
+    if (status == ERROR_SUCCESS && dwType == REG_DWORD) \
+        g_oldSettings.member = (int)dwData
+
+#define ReadInvertedBool(valueName, member) \
+    ReadDword(valueName); \
+    if (status == ERROR_SUCCESS && dwType == REG_DWORD) \
+        g_oldSettings.member = !dwData
+
     LSTATUS status = RegOpenKeyEx(
         HKEY_CURRENT_USER, g_explorerKey, 0, KEY_QUERY_VALUE, &hKey);
     if (status != ERROR_SUCCESS)
         return;
-    
-    DWORD dwType;
-    DWORD cbData = sizeof(DWORD);
 
-#define ReadDword(valueName, data, defValue) \
-    status = RegQueryValueEx( \
-        hKey, valueName, 0, &dwType, (BYTE *)&data, &cbData); \
-    if (status != ERROR_SUCCESS || dwType != REG_DWORD) \
-        data = defValue
-
-#define ReadDwordMember(valueName, member) \
-    ReadDword(valueName, g_oldSettings.member, g_defSettings.member)
-
-#define ReadInvertedMember(valueName, member) \
-    ReadDword(valueName, g_oldSettings.member, !g_defSettings.member); \
-    g_oldSettings.member = !g_oldSettings.member;
-
-    ReadInvertedMember(TEXT("TaskbarSizeMove"), bLock);
-    ReadDwordMember(TEXT("TaskbarSmallIcons"), bSmallButtons);
-    ReadDwordMember(TEXT("TaskbarBadges"), bBadges);
-    ReadDwordMember(TEXT("TaskbarGlomLevel"), iCombineButtons);
-    ReadInvertedMember(TEXT("DisablePreviewDesktop"), bPeek);
-    ReadDwordMember(TEXT("MMTaskbarEnabled"), bAllDisplays);
-    ReadDwordMember(TEXT("MMTaskbarMode"), iMmDisplays);
-    ReadDwordMember(TEXT("MMTaskbarGlomLevel"), iMmCombineButtons);
-
-#undef ReadInvertedMember
-#undef ReadDwordMember
-#undef ReadDword
+    ReadInvertedBool(TEXT("TaskbarSizeMove"), bLock);
+    ReadInt(TEXT("TaskbarSmallIcons"), bSmallButtons);
+    ReadInt(TEXT("TaskbarBadges"), bBadges);
+    ReadInt(TEXT("TaskbarGlomLevel"), iCombineButtons);
+    ReadInvertedBool(TEXT("DisablePreviewDesktop"), bPeek);
+    ReadInt(TEXT("MMTaskbarEnabled"), bAllDisplays);
+    ReadInt(TEXT("MMTaskbarMode"), iMmDisplays);
+    ReadInt(TEXT("MMTaskbarGlomLevel"), iMmCombineButtons);
 
     RegCloseKey(hKey);
+
+#undef ReadInvertedBool
+#undef ReadInt
+#undef ReadDword
 }
 
 static
@@ -133,21 +130,16 @@ void LoadStuckRectsSettings(void)
         return;
 
     DWORD dwType;
-    DWORD cbData = 48;
+    DWORD dwSize = 48;
     BYTE stuckRects3[48];
 
     status = RegQueryValueEx(
-        hKey, TEXT("Settings"), 0, &dwType, stuckRects3, &cbData);
+        hKey, TEXT("Settings"), 0, &dwType, stuckRects3, &dwSize);
 
     if (status == ERROR_SUCCESS && dwType == REG_BINARY)
     {
         g_oldSettings.bAutoHide = (stuckRects3[8] == 3);
         g_oldSettings.iLocation = stuckRects3[12];
-    }
-    else
-    {
-        g_oldSettings.bAutoHide = g_defSettings.bAutoHide;
-        g_oldSettings.iLocation = g_defSettings.iLocation;
     }
 
     RegCloseKey(hKey);
@@ -163,11 +155,11 @@ void LoadDwmSettings(void)
         return;
 
     DWORD dwType;
-    DWORD bData;
-    DWORD cbData = sizeof(DWORD);
+    DWORD bData = 0;
+    DWORD dwSize = sizeof(DWORD);
 
     status = RegQueryValueEx(
-        hKey, TEXT("EnableAeroPeek"), 0, &dwType, (BYTE *)&bData, &cbData);
+        hKey, TEXT("EnableAeroPeek"), 0, &dwType, (BYTE *)&bData, &dwSize);
     if (status == ERROR_SUCCESS && dwType == REG_DWORD)
         g_oldSettings.bPeek &= bData;
 
@@ -177,8 +169,7 @@ void LoadDwmSettings(void)
 static
 void LoadSettings(void)
 {
-    g_oldSettings = g_defSettings;
-
+    LoadDefaultSettings();
     LoadExplorerSettings();
     LoadStuckRectsSettings();
     if (g_oldSettings.bPeek)
@@ -187,16 +178,23 @@ void LoadSettings(void)
     g_newSettings = g_oldSettings;
 }
 
+#define SetChecked(iControl, bChecked) \
+    SendDlgItemMessage(g_hDlg, iControl, \
+        BM_SETCHECK, (WPARAM)(bChecked == 1), 0L)
+
+#define SetComboIndex(iControl, index) \
+    SendDlgItemMessage(g_hDlg, iControl, CB_SETCURSEL, (WPARAM)index, 0L)
+
 static
 void UpdateExplorerControls(void)
 {
-    SetChecked(IDC_TB_LOCK, g_oldSettings.bLock);
-    SetChecked(IDC_TB_SMALLBUTTONS, g_oldSettings.bSmallButtons);
-    SetChecked(IDC_TB_BADGES, g_oldSettings.bBadges);
-    SetComboIndex(IDC_TB_COMBINEBUTTONS, g_oldSettings.iCombineButtons);
-    SetChecked(IDC_TB_PEEK, g_oldSettings.bPeek);
-    SetChecked(IDC_TB_ALLDISPLAYS, g_oldSettings.bAllDisplays);
-    SetComboIndex(IDC_TB_MMDISPLAYS, g_oldSettings.iMmDisplays);
+    SetChecked(IDC_TB_LOCK,                g_oldSettings.bLock);
+    SetChecked(IDC_TB_SMALLBUTTONS,        g_oldSettings.bSmallButtons);
+    SetChecked(IDC_TB_BADGES,              g_oldSettings.bBadges);
+    SetComboIndex(IDC_TB_COMBINEBUTTONS,   g_oldSettings.iCombineButtons);
+    SetChecked(IDC_TB_PEEK,                g_oldSettings.bPeek);
+    SetChecked(IDC_TB_ALLDISPLAYS,         g_oldSettings.bAllDisplays);
+    SetComboIndex(IDC_TB_MMDISPLAYS,       g_oldSettings.iMmDisplays);
     SetComboIndex(IDC_TB_MMCOMBINEBUTTONS, g_oldSettings.iMmCombineButtons);
 
     EnableWindow(GetDlgItem(g_hDlg, IDC_TB_BADGES),
@@ -206,9 +204,12 @@ void UpdateExplorerControls(void)
 static
 void UpdateStuckRectsControls(void)
 {
-    SetChecked(IDC_TB_AUTOHIDE, g_oldSettings.bAutoHide);
+    SetChecked(IDC_TB_AUTOHIDE,    g_oldSettings.bAutoHide);
     SetComboIndex(IDC_TB_LOCATION, g_oldSettings.iLocation);
 }
+
+#undef SetChecked
+#undef SetComboIndex
 
 static
 void UpdateControls(void)
@@ -238,10 +239,10 @@ BOOL WriteStuckRects3(void)
 
     BYTE stuckRects3[48];
     DWORD dwType;
-    DWORD cbData = 48;
+    DWORD dwSize = 48;
 
     status = RegQueryValueEx(
-        hKey, TEXT("Settings"), 0, &dwType, stuckRects3, &cbData);
+        hKey, TEXT("Settings"), 0, &dwType, stuckRects3, &dwSize);
     if (status != ERROR_SUCCESS || dwType != REG_BINARY)
     {
         RegCloseKey(hKey);
@@ -251,7 +252,7 @@ BOOL WriteStuckRects3(void)
     stuckRects3[8] = g_newSettings.bAutoHide ? 3 : 2;
     stuckRects3[12] = g_newSettings.iLocation;
     status = RegSetValueEx(
-        hKey, TEXT("Settings"), 0, dwType, stuckRects3, cbData);
+        hKey, TEXT("Settings"), 0, dwType, stuckRects3, dwSize);
 
     RegCloseKey(hKey);
     if (status != ERROR_SUCCESS)
@@ -292,25 +293,26 @@ BOOL WriteExplorerSettings(void)
     }
 
     BOOL ret = TRUE;
-    DWORD bValue;
+    DWORD dwData;
 
-#define SetDword(value, data) \
+#define SetDword(valueName) \
     status = RegSetValueEx( \
-        hKey, value, 0, REG_DWORD, (BYTE *)&data, sizeof(DWORD))
+        hKey, valueName, 0, REG_DWORD, (BYTE *)&dwData, sizeof(DWORD))
 
-#define UpdateDword(value, member) \
+#define UpdateDword(valueName, member) \
     if (HasChanged(member)) { \
-        SetDword(value, g_newSettings.member); \
+        dwData = (DWORD)g_newSettings.member; \
+        SetDword(valueName); \
         if (status != ERROR_SUCCESS) { \
             RestoreSetting(member); \
             ret = FALSE; \
         } \
     }
 
-#define UpdateDwordInverted(value, member) \
+#define UpdateDwordInverted(valueName, member) \
     if (HasChanged(member)) { \
-        bValue = !g_newSettings.member; \
-        SetDword(value, bValue); \
+        dwData = (DWORD)!g_newSettings.member; \
+        SetDword(valueName); \
         if (status != ERROR_SUCCESS) { \
             RestoreSetting(member); \
             ret = FALSE; \

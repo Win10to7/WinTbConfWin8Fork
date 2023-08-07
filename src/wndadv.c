@@ -25,30 +25,27 @@ static const TCHAR g_explorerPatcherKey[] =
 
 typedef struct tagTBSETTINGS
 {
-    DWORD bAnimations;
-    DWORD bSaveThumbnails;
-    DWORD bWinXPowerShell;
-    DWORD bShowDesktop;
-    DWORD bToggleAutoHide;
+    BOOL bAnimations;
+    BOOL bSaveThumbnails;
+    BOOL bWinXPowerShell;
+    BOOL bShowDesktop;
+    BOOL bToggleAutoHide;
 } TBSETTINGS;
-
-static const TBSETTINGS g_defSettings =
-{
-    1,  /* bAnimations */
-    0,  /* bSaveThumbnails */
-    0,  /* bWinXPowerShell - 1 starting from 1703 */
-    1,  /* bShowDesktop */
-    0   /* bToggleAutoHide */
-};
 
 static TBSETTINGS g_oldSettings;
 static TBSETTINGS g_newSettings;
 
 static HWND g_hDlg;
 
-#define SetChecked(iControl, bChecked) \
-    SendDlgItemMessage(g_hDlg, iControl, \
-        BM_SETCHECK, (WPARAM)(bChecked == 1), 0L)
+static
+void LoadDefaultSettings(void)
+{
+    g_oldSettings.bAnimations     = TRUE;
+    g_oldSettings.bSaveThumbnails = FALSE;
+    g_oldSettings.bWinXPowerShell = FALSE;  /* TRUE starting from 1703 */
+    g_oldSettings.bShowDesktop    = TRUE;
+    g_oldSettings.bToggleAutoHide = FALSE;
+}
 
 static
 void LoadRegSettings(void)
@@ -56,28 +53,31 @@ void LoadRegSettings(void)
     HKEY hKey;
     LSTATUS status;
     DWORD dwType;
-    DWORD cbData = sizeof(DWORD);
+    DWORD dwData = 0;
+    DWORD dwSize;
 
-#define ReadDword(valueName, data, defValue) \
+#define ReadDword(valueName) \
+    dwSize = sizeof(DWORD); \
     status = RegQueryValueEx( \
-        hKey, valueName, 0, &dwType, (BYTE *)&data, &cbData); \
-    if (status != ERROR_SUCCESS || dwType != REG_DWORD) \
-        data = defValue
+        hKey, valueName, 0, &dwType, (BYTE *)&dwData, &dwSize)
 
-#define ReadDwordMember(valueName, member) \
-    ReadDword(valueName, g_oldSettings.member, g_defSettings.member)
+#define ReadInt(valueName, member) \
+    ReadDword(valueName); \
+    if (status == ERROR_SUCCESS && dwType == REG_DWORD) \
+        g_oldSettings.member = (int)dwData
 
-#define ReadInvertedMember(valueName, member) \
-    ReadDword(valueName, g_oldSettings.member, !g_defSettings.member); \
-    g_oldSettings.member = !g_oldSettings.member;
+#define ReadInvertedBool(valueName, member) \
+    ReadDword(valueName); \
+    if (status == ERROR_SUCCESS && dwType == REG_DWORD) \
+        g_oldSettings.member = !dwData
 
     status = RegOpenKeyEx(
         HKEY_CURRENT_USER, g_explorerKey, 0, KEY_QUERY_VALUE, &hKey);
     if (status == ERROR_SUCCESS)
     {
-        ReadDwordMember(TEXT("TaskbarAnimations"), bAnimations);
-        ReadInvertedMember(TEXT("DontUsePowerShellOnWinX"), bWinXPowerShell);
-        ReadDwordMember(TEXT("TaskbarSd"), bShowDesktop);
+        ReadInt(TEXT("TaskbarAnimations"), bAnimations);
+        ReadInvertedBool(TEXT("DontUsePowerShellOnWinX"), bWinXPowerShell);
+        ReadInt(TEXT("TaskbarSd"), bShowDesktop);
         RegCloseKey(hKey);
     }
 
@@ -85,7 +85,7 @@ void LoadRegSettings(void)
         HKEY_CURRENT_USER, g_dwmKey, 0, KEY_QUERY_VALUE, &hKey);
     if (status == ERROR_SUCCESS)
     {
-        ReadDwordMember(TEXT("AlwaysHibernateThumbnails"), bSaveThumbnails);
+        ReadInt(TEXT("AlwaysHibernateThumbnails"), bSaveThumbnails);
         RegCloseKey(hKey);
     }
 
@@ -93,20 +93,19 @@ void LoadRegSettings(void)
         HKEY_CURRENT_USER, g_explorerPatcherKey, 0, KEY_QUERY_VALUE, &hKey);
     if (status == ERROR_SUCCESS)
     {
-        ReadDwordMember(TEXT("TaskbarAutohideOnDoubleClick"), bToggleAutoHide);
+        ReadInt(TEXT("TaskbarAutohideOnDoubleClick"), bToggleAutoHide);
         RegCloseKey(hKey);
     }
     
-#undef ReadInvertedMember
-#undef ReadDwordMember
+#undef ReadInvertedBool
+#undef ReadInt
 #undef ReadDword
 }
 
 static
 void LoadSettings(void)
 {
-    g_oldSettings = g_defSettings;
-
+    LoadDefaultSettings();
     LoadRegSettings();
 
     g_newSettings = g_oldSettings;
@@ -115,11 +114,17 @@ void LoadSettings(void)
 static
 void UpdateControls(void)
 {
-    SetChecked(IDC_ADV_ANIMATIONS, g_oldSettings.bAnimations);
+#define SetChecked(iControl, bChecked) \
+    SendDlgItemMessage(g_hDlg, iControl, \
+        BM_SETCHECK, (WPARAM)(bChecked == 1), 0L)
+
+    SetChecked(IDC_ADV_ANIMATIONS,     g_oldSettings.bAnimations);
     SetChecked(IDC_ADV_SAVETHUMBNAILS, g_oldSettings.bSaveThumbnails);
     SetChecked(IDC_ADV_WINXPOWERSHELL, g_oldSettings.bWinXPowerShell);
-    SetChecked(IDC_ADV_SHOWDESKTOP, g_oldSettings.bShowDesktop);
+    SetChecked(IDC_ADV_SHOWDESKTOP,    g_oldSettings.bShowDesktop);
     SetChecked(IDC_ADV_TOGGLEAUTOHIDE, g_oldSettings.bToggleAutoHide);
+
+#undef SetChecked
 }
 
 static
@@ -139,28 +144,29 @@ BOOL WriteRegSettings(void)
     HKEY hKey;
     LSTATUS status;
     BOOL ret = TRUE;
-    DWORD bValue;
+    DWORD dwData;
 
 #define RestoreSetting(member) \
     g_newSettings.member = g_oldSettings.member
 
-#define SetDword(value, data) \
+#define SetDword(valueName) \
     status = RegSetValueEx( \
-        hKey, value, 0, REG_DWORD, (BYTE *)&data, sizeof(DWORD))
+        hKey, valueName, 0, REG_DWORD, (BYTE *)&dwData, sizeof(DWORD))
 
-#define UpdateDword(value, member) \
+#define UpdateDword(valueName, member) \
     if (HasChanged(member)) { \
-        SetDword(value, g_newSettings.member); \
+        dwData = (DWORD)g_newSettings.member; \
+        SetDword(valueName); \
         if (status != ERROR_SUCCESS) { \
             RestoreSetting(member); \
             ret = FALSE; \
         } \
     }
 
-#define UpdateDwordInverted(value, member) \
+#define UpdateDwordInverted(valueName, member) \
     if (HasChanged(member)) { \
-        bValue = !g_newSettings.member; \
-        SetDword(value, bValue); \
+        dwData = (DWORD)!g_newSettings.member; \
+        SetDword(valueName); \
         if (status != ERROR_SUCCESS) { \
             RestoreSetting(member); \
             ret = FALSE; \
