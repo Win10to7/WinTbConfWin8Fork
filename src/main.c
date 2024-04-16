@@ -73,8 +73,8 @@ int CALLBACK PropSheetProc(HWND hWnd, UINT uMsg, LPARAM lParam)
 }
 
 _Success_(return < RETURN_ERROR)
-    static
-    UINT DisplayPropSheet(UINT nStartPage)
+static
+UINT DisplayPropSheet(UINT nStartPage)
 {
     PROPSHEETHEADER psh;
     HPROPSHEETPAGE hpsp[2];
@@ -108,6 +108,35 @@ Error:
     return RETURN_ERROR;
 }
 
+static
+BOOL ShowRunningInstance(void)
+{
+    CreateMutex(0, TRUE, TEXT("TortoTbConfig"));
+    if (GetLastError() != ERROR_ALREADY_EXISTS)
+        return FALSE;
+
+    HWND hExistingWnd;
+
+    hExistingWnd = FindWindowEx(NULL, NULL,
+        MAKEINTATOM(0x8002), TEXT("Taskbar Properties"));
+
+    if (!hExistingWnd)
+    {
+        hExistingWnd = FindWindowEx(
+            NULL, NULL, MAKEINTATOM(0x8002),
+            TEXT("Propiedades de Barra de tareas"));
+    }
+
+    if (!hExistingWnd)
+    {
+        /* No window found... open it again */
+        return FALSE;
+    }
+
+    SetForegroundWindow(hExistingWnd);
+    return TRUE;
+}
+
 _Success_(return < RETURN_ERROR)
     static
     UINT InitGUI(UINT nStartPage)
@@ -124,6 +153,9 @@ _Success_(return == 0)
 static
 UINT InitProgram(void)
 {
+    if (ShowRunningInstance())
+        return RETURN_EXISTING_INSTANCE;
+
     g_propSheet.heap = GetProcessHeap();
     if (!g_propSheet.heap)
         goto Error;

@@ -12,7 +12,9 @@ enum returnCode
 {
     RETURN_NO_CHANGES,
     RETURN_CHANGES,
-    RETURN_ERROR
+    RETURN_ERROR,
+    RETURN_USAGE,
+    RETURN_EXISTING_INSTANCE
 };
 
 typedef struct tagPROPSHEET
