@@ -65,13 +65,20 @@ int AllocAndLoadString(_Out_ TCHAR **pTarget, UINT id)
     return 0;
 }
 
+_Success_(return != 0)
 int ShowMessageFromResource(HWND hWnd, int msgId, int titleMsgId, UINT type)
 {
     TCHAR *msg;
     TCHAR *msgTitle;
 
-    AllocAndLoadString(&msg, msgId);
-    AllocAndLoadString(&msgTitle, titleMsgId);
+    if (!AllocAndLoadString(&msg, msgId))
+        return 0;
+
+    if (!AllocAndLoadString(&msgTitle, titleMsgId))
+    {
+        Free(msg);
+        return 0;
+    }
 
     int ret = MessageBox(hWnd, msg, msgTitle, MB_APPLMODAL | type);
 
@@ -83,18 +90,20 @@ int ShowMessageFromResource(HWND hWnd, int msgId, int titleMsgId, UINT type)
 /* Set the Performance Visual Effects preset to "custom", so that those settings
  * are reflected in the system property sheet page.
  */
-void SetCustomVisualFx(void)
+_Success_(return)
+BOOL SetCustomVisualFx(void)
 {
     HKEY hKey;
     LSTATUS status = RegCreateKeyEx(HKEY_CURRENT_USER,
         TEXT("SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Explorer\\VisualEffects"),
         0, NULL, 0, KEY_SET_VALUE, NULL, &hKey, NULL);
     if (status != ERROR_SUCCESS)
-        return;
+        return FALSE;
 
     DWORD dwData = 3;
-    RegSetValueEx(hKey, TEXT("VisualFXSetting"), 0, REG_DWORD,
+    LRESULT result = RegSetValueEx(hKey, TEXT("VisualFXSetting"), 0, REG_DWORD,
         (BYTE *)&dwData, sizeof(DWORD));
 
     RegCloseKey(hKey);
+    return (result == ERROR_SUCCESS);
 }

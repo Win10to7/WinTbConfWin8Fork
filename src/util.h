@@ -10,8 +10,10 @@
 _Success_(return > 0)
 int AllocAndLoadString(_Out_ TCHAR **pTarget, UINT id);
 
+_Success_(return != 0)
 int ShowMessageFromResource(HWND hWnd, int msgId, int titleMsgId, UINT type);
 
-void SetCustomVisualFx(void);
+_Success_(return)
+BOOL SetCustomVisualFx(void);
 
 #endif  /* !defined(UTIL_H) */
