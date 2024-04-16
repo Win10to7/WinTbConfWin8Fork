@@ -13,7 +13,7 @@ MY_CPPFLAGS = -D_WINDOWS -DWINVER=0x0A00 -D_WIN32_WINNT=0x0A00 \
 
 MY_LDFLAGS = -s \
 	-nostdlib -Wl,-e__main -Wl,--enable-stdcall-fixup \
-	-lComCtl32 \
+	-lAdvapi32 -lComCtl32 -lKernel32 -lShell32 -lUser32 \
 	-Wl,-subsystem,windows:6.2
 
 OBJ = \
