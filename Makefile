@@ -36,7 +36,9 @@ $(PROG): $(OBJ) $(RES)
 .rc.res:
 	windres $(MY_CPPFLAGS) $(CPPFLAGS) $< -O coff -I. -o $@
 
-clean:
+clean: cleanres
 	$(RM) $(PROG)
 	$(RM) $(OBJ)
+
+cleanres:
 	$(RM) $(RES)
