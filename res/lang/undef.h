@@ -1,11 +1,6 @@
 #undef RES_LANG
 #undef RES_SUBLANG
 
-#undef FILE_LANGUAGE
-#undef FILE_DESCRIPTION
-#undef FILE_COPYRIGHT
-#undef PRODUCT_NAME
-
 #undef S_ERROR
 #undef S_ERROR_GENERIC
 #undef S_ERROR_MEM

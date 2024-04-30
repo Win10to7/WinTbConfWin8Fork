@@ -1,11 +1,6 @@
 #define RES_LANG         LANG_ENGLISH
 #define RES_SUBLANG      SUBLANG_ENGLISH_US
 
-#define FILE_LANGUAGE     "040904B0"
-#define FILE_DESCRIPTION  "Configures Explorer taskbar settings"
-#define FILE_COPYRIGHT    "Licenced under the GPLv2"
-#define PRODUCT_NAME      "Taskbar Configurator"
-
 #define S_ERROR          "Error"
 #define S_ERROR_GENERIC  "An error has occurred"
 #define S_ERROR_MEM      "Could not allocate memory"

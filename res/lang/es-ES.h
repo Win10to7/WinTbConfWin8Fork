@@ -1,11 +1,6 @@
 #define RES_LANG         LANG_SPANISH
 #define RES_SUBLANG      SUBLANG_SPANISH_MODERN
 
-#define FILE_LANGUAGE     "0C0A04B0"
-#define FILE_DESCRIPTION  "Configura la barra de tareas de Explorer"
-#define FILE_COPYRIGHT    "Licenciado bajo la GPLv2"
-#define PRODUCT_NAME      "Configurador de la barra de tareas"
-
 #define S_ERROR          "Error"
 #define S_ERROR_GENERIC  "Ha ocurrido un error"
 #define S_ERROR_MEM      "No se pudo reservar memoria"
