@@ -12,6 +12,9 @@
 #include <CommCtrl.h>
 #include <shellapi.h>
 
+static HICON g_hiconLarge;
+static HICON g_hiconSmall;
+
 PROPSHEET g_propSheet;
 
 /* Property sheet dialog proc forward definitions */
@@ -42,19 +45,18 @@ void SetIcon(void)
 {
     TCHAR szFilePath[MAX_PATH];
 
-    if (!GetWindowsDirectory(szFilePath, MAX_PATH))
+    UINT len = GetWindowsDirectory(szFilePath, MAX_PATH);
+    if (len < 2 || len > MAX_PATH - 22)
         return;
 
     if (!lstrcat(szFilePath, TEXT("\\System32\\imageres.dll")))
         return;
 
-    HICON hiconLarge;
-    HICON hiconSmall;
-    if (ExtractIconEx(szFilePath, 75, &hiconLarge, &hiconSmall, 1) <= 0)
+    if (ExtractIconEx(szFilePath, 75, &g_hiconLarge, &g_hiconSmall, 1) == 0)
         return;
 
-    SendMessage(g_propSheet.hWnd, WM_SETICON, ICON_BIG, (LPARAM)hiconLarge);
-    SendMessage(g_propSheet.hWnd, WM_SETICON, ICON_SMALL, (LPARAM)hiconSmall);
+    SendMessage(g_propSheet.hWnd, WM_SETICON, ICON_BIG,   (LPARAM)g_hiconLarge);
+    SendMessage(g_propSheet.hWnd, WM_SETICON, ICON_SMALL, (LPARAM)g_hiconSmall);
 }
 
 static
@@ -94,6 +96,11 @@ UINT DisplayPropSheet(UINT nStartPage)
     InitPage(&psh, IDD_ADV, AdvancedPageProc);
 
     INT_PTR ret = PropertySheet(&psh);
+
+    if (g_hiconLarge)
+        DestroyIcon(g_hiconLarge);
+    if (g_hiconSmall)
+        DestroyIcon(g_hiconSmall);
 
     if (ret < 0)
         goto Error;
