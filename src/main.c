@@ -9,7 +9,7 @@
 #include "resource.h"
 #include "util.h"
 
-#include <CommCtrl.h>
+#include <commctrl.h>
 #include <shellapi.h>
 
 static HICON g_hiconLarge;
@@ -145,8 +145,8 @@ BOOL ShowRunningInstance(void)
 }
 
 _Success_(return < RETURN_ERROR)
-    static
-    UINT InitGUI(UINT nStartPage)
+static
+UINT InitGUI(UINT nStartPage)
 {
     INITCOMMONCONTROLSEX icce;
     icce.dwSize = sizeof(INITCOMMONCONTROLSEX);

@@ -9,7 +9,7 @@
 #include "resource.h"
 #include "util.h"
 
-#include <CommCtrl.h>
+#include <commctrl.h>
 #include <shellapi.h>
 
 static const TCHAR g_explorerKey[] =

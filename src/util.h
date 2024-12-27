@@ -5,7 +5,7 @@
 #include "config.h"
 
 #define WIN32_LEAN_AND_MEAN
-#include <Windows.h>
+#include <windows.h>
 
 _Success_(return > 0)
 int AllocAndLoadString(_Out_ TCHAR **pTarget, UINT id);

@@ -9,8 +9,8 @@
 
 #define APSTUDIO_HIDDEN_SYMBOLS
 #define WIN32_LEAN_AND_MEAN
-#include <Windows.h>
-#include <CommCtrl.h>
+#include <windows.h>
+#include <commctrl.h>
 #undef APSTUDIO_HIDDEN_SYMBOLS
 
 #undef APSTUDIO_READONLY_SYMBOLS

@@ -8,7 +8,7 @@
 
 #include "app.h"
 
-#include <CommCtrl.h>
+#include <commctrl.h>
 
 _Success_(return >= 0)
 static
