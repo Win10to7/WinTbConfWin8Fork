@@ -6,6 +6,8 @@ PROG = TbConf.exe
 
 CC = cc
 RM = rm -vf
+WINDRES = windres
+STRIP = strip
 
 MY_CFLAGS = -Wall -Wextra -Wpedantic -municode $(CFLAGS)
 MY_CPPFLAGS = -D_WINDOWS -DWINVER=0x0A00 -D_WIN32_WINNT=0x0A00\
@@ -29,12 +31,13 @@ all: $(PROG)
 
 $(PROG): $(OBJ) $(RES)
 	$(CC) -o $@ $(OBJ) $(RES) $(MY_LDFLAGS)
+	$(STRIP) $@
 
 .c.obj:
 	$(CC) -c $(MY_CPPFLAGS) $(MY_CFLAGS) -o $@ $<
 
 .rc.res:
-	windres $(MY_CPPFLAGS) $< -O coff -I. -o $@
+	$(WINDRES) $(MY_CPPFLAGS) $< -O coff -I. -o $@
 
 clean: cleanres
 	$(RM) $(PROG)

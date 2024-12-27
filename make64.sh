@@ -1,19 +1,25 @@
 #!/bin/sh
 
+if [ -z "$MAKE" ] ; then
+	MAKE=ming32-make
+	command -v $MAKE 2&>/dev/null || MAKE=make
+fi
+
 function _make()
 {
 	winver="$1"
 	exesuffix="$2"
 	shift 2
 
-	mingw32-make \
+	$MAKE \
 		CPPFLAGS="-DNDEBUG -DWINVER=$winver $CPPFLAGS" \
 		CFLAGS="-O2 $CFLAGS" $@
 
 	[ -f TbConf.exe ] && mv TbConf.exe TbConf$exesuffix.exe
-	mingw32-make clean
+
+	$MAKE clean
 }
 
-mingw32-make clean
+$MAKE clean
 
-_make '0x0A00' '10x86' $@
+_make '0x0A00' '10x64' $@
