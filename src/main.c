@@ -10,7 +10,15 @@
 #include "util.h"
 
 #include <commctrl.h>
+#include <initguid.h>
 #include <shellapi.h>
+
+/* https://www.geoffchappell.com/studies/windows/shell/shlwapi/api/winpolicy/policies.htm
+ */
+DEFINE_GUID(POLID_NoSetTaskbar,
+    0xC67F73F8, 0xAB64, 0x422F, 0xB9, 0x52, 0x3C, 0x57, 0xAB, 0xC9, 0xC1, 0x37);
+DEFINE_GUID(POLID_TaskbarLockAll,
+    0xC79A44A1, 0xDB7C, 0x4212, 0xA8, 0x37, 0x4B, 0x07, 0x3F, 0x6C, 0x48, 0x15);
 
 static HICON g_hiconLarge;
 static HICON g_hiconSmall;
@@ -111,7 +119,7 @@ UINT DisplayPropSheet(UINT nStartPage)
     return RETURN_CHANGES;
 
 Error:
-    ShowMessageFromResource(NULL, IDS_ERROR_GENERIC, IDS_ERROR, MB_OK);
+    ShowMessageFromAppResource(NULL, IDS_ERROR_GENERIC, IDS_ERROR, MB_OK);
     return RETURN_ERROR;
 }
 
@@ -144,6 +152,18 @@ BOOL ShowRunningInstance(void)
     return TRUE;
 }
 
+static
+BOOL ShowRestrictedMessage(void)
+{
+    HMODULE hSystem32 = GetModuleHandle(TEXT("shell32.dll"));
+    if (hSystem32 == NULL)
+        return FALSE;
+
+    int ret = ShowMessageFromResource(hSystem32, NULL, 9729, 9728,
+        MB_OK | MB_ICONERROR);
+    return (ret > 0);
+}
+
 _Success_(return < RETURN_ERROR)
 static
 UINT InitGUI(UINT nStartPage)
@@ -154,6 +174,37 @@ UINT InitGUI(UINT nStartPage)
     InitCommonControlsEx(&icce);
 
     return DisplayPropSheet(nStartPage);
+}
+
+static
+BOOL IsAppRestricted(void)
+{
+    /* SHRestricted() could be used, but it is deprecated and does not
+     * support newer restrictions */
+    HMODULE hShlwapi = LoadLibrary(TEXT("shlwapi.dll"));
+    if (!hShlwapi)
+        return FALSE;
+
+    BOOL(WINAPI *SHWindowsPolicy)(GUID *rpolid);
+
+#if defined(__GNUC__)
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wstrict-aliasing"
+#endif
+    *(FARPROC *)&SHWindowsPolicy =
+        GetProcAddress(hShlwapi, MAKEINTRESOURCEA(618));
+#if defined(__GNUC__)
+#pragma GCC diagnostic pop
+#endif
+
+    /* "Prevent changes to Taskbar and Start Menu Settings",
+     * "Lock all taskbar settings" */
+    BOOL isRestricted = SHWindowsPolicy && (
+        SHWindowsPolicy((GUID *)&POLID_NoSetTaskbar) ||
+        SHWindowsPolicy((GUID *)&POLID_TaskbarLockAll));
+
+    FreeLibrary(hShlwapi);
+    return isRestricted;
 }
 
 _Success_(return == 0)
@@ -171,10 +222,19 @@ UINT InitProgram(void)
     if (!g_propSheet.hInstance)
         goto Error;
 
+    /* Respect user policies in Administrative Templates ->
+     * Start Menu and Taskbar */
+    if (IsAppRestricted())
+    {
+        if (!ShowRestrictedMessage())
+            goto Error;
+        return RETURN_ERROR;
+    }
+
     return InitGUI(0);
 
 Error:
-    ShowMessageFromResource(NULL, IDS_ERROR_MEM, IDS_ERROR, MB_OK);
+    ShowMessageFromAppResource(NULL, IDS_ERROR_MEM, IDS_ERROR, MB_OK);
     return RETURN_ERROR;
 }
 

@@ -11,15 +11,26 @@
 
 #include <commctrl.h>
 #include <shellapi.h>
+#include <shlwapi.h>
+
+#define SetChecked(iControl, bChecked) \
+    SendDlgItemMessage(g_hDlg, iControl, \
+        BM_SETCHECK, (WPARAM)(bChecked == 1), 0L)
+
+#define SetComboIndex(iControl, index) \
+    SendDlgItemMessage(g_hDlg, iControl, CB_SETCURSEL, (WPARAM)index, 0L)
 
 static const TCHAR g_explorerKey[] =
-    TEXT("SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Explorer\\Advanced");
+    TEXT("Software\\Microsoft\\Windows\\CurrentVersion\\Explorer\\Advanced");
 
 static const TCHAR g_stuckRectsKey[] =
-    TEXT("SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Explorer\\StuckRects3");
+    TEXT("Software\\Microsoft\\Windows\\CurrentVersion\\Explorer\\StuckRects3");
 
 static const TCHAR g_dwmKey[] =
-    TEXT("SOFTWARE\\Microsoft\\Windows\\DWM");
+    TEXT("Software\\Microsoft\\Windows\\DWM");
+
+static const TCHAR g_policiesKey[] =
+    TEXT("Software\\Microsoft\\Windows\\CurrentVersion\\Policies\\Explorer");
 
 typedef struct tagTBSETTINGS
 {
@@ -86,8 +97,8 @@ void LoadExplorerSettings(void)
 
 #define ReadDword(valueName) \
     dwSize = sizeof(DWORD); \
-    status = RegQueryValueEx( \
-        hKey, valueName, 0, &dwType, (BYTE *)&dwData, &dwSize)
+    status = RegQueryValueEx(hKey, valueName, 0, &dwType, \
+        (BYTE *)&dwData, &dwSize)
 
 #define ReadInt(valueName, member) \
     ReadDword(valueName); \
@@ -99,8 +110,8 @@ void LoadExplorerSettings(void)
     if (status == ERROR_SUCCESS && dwType == REG_DWORD) \
         g_oldSettings.member = !dwData
 
-    LSTATUS status = RegOpenKeyEx(
-        HKEY_CURRENT_USER, g_explorerKey, 0, KEY_QUERY_VALUE, &hKey);
+    LSTATUS status = RegOpenKeyEx(HKEY_CURRENT_USER, g_explorerKey, 0,
+        KEY_QUERY_VALUE, &hKey);
     if (status != ERROR_SUCCESS)
         return;
 
@@ -124,8 +135,8 @@ static
 void LoadStuckRectsSettings(void)
 {
     HKEY hKey;
-    LSTATUS status = RegOpenKeyEx(
-        HKEY_CURRENT_USER, g_stuckRectsKey, 0, KEY_QUERY_VALUE, &hKey);
+    LSTATUS status = RegOpenKeyEx(HKEY_CURRENT_USER, g_stuckRectsKey, 0,
+        KEY_QUERY_VALUE, &hKey);
     if (status != ERROR_SUCCESS)
         return;
 
@@ -133,8 +144,8 @@ void LoadStuckRectsSettings(void)
     DWORD dwSize = 48;
     BYTE stuckRects3[48];
 
-    status = RegQueryValueEx(
-        hKey, TEXT("Settings"), 0, &dwType, stuckRects3, &dwSize);
+    status = RegQueryValueEx(hKey, TEXT("Settings"), 0,
+        &dwType, stuckRects3, &dwSize);
 
     if (status == ERROR_SUCCESS && dwType == REG_BINARY)
     {
@@ -149,8 +160,8 @@ static
 void LoadDwmSettings(void)
 {
     HKEY hKey;
-    LSTATUS status = RegOpenKeyEx(
-        HKEY_CURRENT_USER, g_dwmKey, 0, KEY_QUERY_VALUE, &hKey);
+    LSTATUS status = RegOpenKeyEx(HKEY_CURRENT_USER, g_dwmKey, 0,
+        KEY_QUERY_VALUE, &hKey);
     if (status != ERROR_SUCCESS)
         return;
 
@@ -158,8 +169,8 @@ void LoadDwmSettings(void)
     DWORD bData = 0;
     DWORD dwSize = sizeof(DWORD);
 
-    status = RegQueryValueEx(
-        hKey, TEXT("EnableAeroPeek"), 0, &dwType, (BYTE *)&bData, &dwSize);
+    status = RegQueryValueEx(hKey, TEXT("EnableAeroPeek"), 0,
+        &dwType, (BYTE *)&bData, &dwSize);
     if (status == ERROR_SUCCESS && dwType == REG_DWORD)
         g_oldSettings.bPeek &= bData;
 
@@ -177,13 +188,6 @@ void LoadSettings(void)
 
     g_newSettings = g_oldSettings;
 }
-
-#define SetChecked(iControl, bChecked) \
-    SendDlgItemMessage(g_hDlg, iControl, \
-        BM_SETCHECK, (WPARAM)(bChecked == 1), 0L)
-
-#define SetComboIndex(iControl, index) \
-    SendDlgItemMessage(g_hDlg, iControl, CB_SETCURSEL, (WPARAM)index, 0L)
 
 static
 void UpdateExplorerControls(void)
@@ -208,9 +212,6 @@ void UpdateStuckRectsControls(void)
     SetComboIndex(IDC_TB_LOCATION, g_oldSettings.iLocation);
 }
 
-#undef SetChecked
-#undef SetComboIndex
-
 static
 void UpdateControls(void)
 {
@@ -219,11 +220,33 @@ void UpdateControls(void)
 }
 
 static
+void DisableRestrictedControls(void)
+{
+    /* "Lock the Taskbar" policy */
+    if (SHRegGetBoolValueFromHKCUHKLM(g_policiesKey, TEXT("LockTaskbar"),
+        FALSE))
+    {
+        g_oldSettings.bLock = TRUE;
+        g_newSettings.bLock = TRUE;
+        EnableWindow(GetDlgItem(g_hDlg, IDC_TB_LOCK), FALSE);
+    }
+
+    /* "Prevent grouping of taskbar items" policy */
+    if (SHRegGetBoolValueFromHKCUHKLM(g_policiesKey, TEXT("NoTaskGrouping"),
+        FALSE))
+    {
+        g_oldSettings.iCombineButtons = 2;
+        g_newSettings.iCombineButtons = 2;
+        EnableWindow(GetDlgItem(g_hDlg, IDC_TB_COMBINEBUTTONS), FALSE);
+    }
+}
+
+static
 void InitPage(void)
 {
     InitComboBoxes();
-
     LoadSettings();
+    DisableRestrictedControls();
     UpdateControls();
 }
 
@@ -241,8 +264,8 @@ BOOL WriteStuckRects3(void)
     DWORD dwType;
     DWORD dwSize = 48;
 
-    status = RegQueryValueEx(
-        hKey, TEXT("Settings"), 0, &dwType, stuckRects3, &dwSize);
+    status = RegQueryValueEx(hKey, TEXT("Settings"), 0,
+        &dwType, stuckRects3, &dwSize);
     if (status != ERROR_SUCCESS || dwType != REG_BINARY)
     {
         RegCloseKey(hKey);
@@ -251,8 +274,8 @@ BOOL WriteStuckRects3(void)
 
     stuckRects3[8] = g_newSettings.bAutoHide ? 3 : 2;
     stuckRects3[12] = g_newSettings.iLocation;
-    status = RegSetValueEx(
-        hKey, TEXT("Settings"), 0, dwType, stuckRects3, dwSize);
+    status = RegSetValueEx(hKey, TEXT("Settings"), 0,
+        dwType, stuckRects3, dwSize);
 
     RegCloseKey(hKey);
     if (status != ERROR_SUCCESS)
@@ -296,8 +319,8 @@ BOOL WriteExplorerSettings(void)
     DWORD dwData;
 
 #define SetDword(valueName) \
-    status = RegSetValueEx( \
-        hKey, valueName, 0, REG_DWORD, (BYTE *)&dwData, sizeof(DWORD))
+    status = RegSetValueEx(hKey, valueName, 0, REG_DWORD, \
+        (BYTE *)&dwData, sizeof(DWORD))
 
 #define UpdateDword(valueName, member) \
     if (HasChanged(member)) { \
@@ -384,17 +407,17 @@ void ApplyExplorerSettings(void)
 
     if (bSendSettingChange)
     {
-        SendNotifyMessage(
-            HWND_BROADCAST, WM_SETTINGCHANGE, 0L, (LPARAM)TEXT("TraySettings"));
+        SendNotifyMessage(HWND_BROADCAST, WM_SETTINGCHANGE,
+            0L, (LPARAM)TEXT("TraySettings"));
     }
 
     if (HasChanged(bLock))
     {
         HWND hTaskbar = FindWindow(TEXT("Shell_TrayWnd"), TEXT(""));
         if (hTaskbar)
-        {
-            SendNotifyMessage(
-                hTaskbar, WM_USER + 458, 2, (LPARAM)!g_newSettings.bLock);
+      {
+            SendNotifyMessage(hTaskbar, WM_USER + 458,
+                2L, (LPARAM)!g_newSettings.bLock);
         }
     }
 }
@@ -422,10 +445,10 @@ void ApplyStuckRectsSettings(void)
         return;
 
     if (HasChanged(bAutoHide))
-        SendNotifyMessage(hTaskbar, WM_USER + 458, 4, g_newSettings.bAutoHide);
+        SendNotifyMessage(hTaskbar, WM_USER + 458, 4L, g_newSettings.bAutoHide);
 
     if (HasChanged(iLocation))
-        SendNotifyMessage(hTaskbar, WM_USER + 458, 6, g_newSettings.iLocation);
+        SendNotifyMessage(hTaskbar, WM_USER + 458, 6L, g_newSettings.iLocation);
 }
 
 #undef HasChanged
@@ -462,8 +485,8 @@ void HandleCommand(WORD iControl)
 
     case IDC_TB_SMALLBUTTONS:
         g_newSettings.bSmallButtons = GetChecked();
-        EnableWindow(
-            GetDlgItem(g_hDlg, IDC_TB_BADGES), !g_newSettings.bSmallButtons);
+        EnableWindow(GetDlgItem(g_hDlg, IDC_TB_BADGES),
+            !g_newSettings.bSmallButtons);
         break;
 
     case IDC_TB_BADGES:

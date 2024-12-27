@@ -12,20 +12,20 @@
 
 _Success_(return >= 0)
 static
-int LengthOfStrResource(HINSTANCE hInst, UINT id)
+int LengthOfStrResource(HMODULE hModule, UINT id)
 {
-    if (!hInst)
+    if (!hModule)
         return -1;
 
     /* There are always blocks of 16 strings */
     TCHAR *name = MAKEINTRESOURCE((id >> 4) + 1);
 
     /* Find the string table block */
-    HRSRC hrSrc = FindResource(hInst, name, RT_STRING);
+    HRSRC hrSrc = FindResource(hModule, name, RT_STRING);
     if (!hrSrc)
         return -1;
 
-    HGLOBAL hRes = LoadResource(hInst, hrSrc);
+    HGLOBAL hRes = LoadResource(hModule, hrSrc);
     if (!hRes)
         return -1;
 
@@ -44,15 +44,15 @@ int LengthOfStrResource(HINSTANCE hInst, UINT id)
 }
 
 _Success_(return > 0)
-int AllocAndLoadString(_Out_ TCHAR **pTarget, UINT id)
+int AllocAndLoadString(HMODULE hModule, UINT id, _Out_ TCHAR **pTarget)
 {
-    int len = LengthOfStrResource(g_propSheet.hInstance, id);
+    int len = LengthOfStrResource(hModule, id);
     if (len++ > 0)
     {
         (*pTarget) = (TCHAR *)Alloc(0, len * sizeof(TCHAR));
         if (*pTarget)
         {
-            int ret = LoadString(g_propSheet.hInstance, id, *pTarget, len);
+            int ret = LoadString(hModule, id, *pTarget, len);
             if (ret > 0)
                 return ret;
 
@@ -66,15 +66,16 @@ int AllocAndLoadString(_Out_ TCHAR **pTarget, UINT id)
 }
 
 _Success_(return != 0)
-int ShowMessageFromResource(HWND hWnd, int msgId, int titleMsgId, UINT type)
+int ShowMessageFromResource(HMODULE hModule, HWND hWnd,
+    int msgId, int titleMsgId, UINT type)
 {
     TCHAR *msg;
     TCHAR *msgTitle;
 
-    if (!AllocAndLoadString(&msg, msgId))
+    if (!AllocAndLoadString(hModule, msgId, &msg))
         return 0;
 
-    if (!AllocAndLoadString(&msgTitle, titleMsgId))
+    if (!AllocAndLoadString(hModule, titleMsgId, &msgTitle))
     {
         Free(msg);
         return 0;

@@ -15,13 +15,13 @@
 #include <psapi.h>
 
 static const TCHAR g_explorerKey[] =
-    TEXT("SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Explorer\\Advanced");
+    TEXT("Software\\Microsoft\\Windows\\CurrentVersion\\Explorer\\Advanced");
 
 static const TCHAR g_dwmKey[] =
-    TEXT("SOFTWARE\\Microsoft\\Windows\\DWM");
+    TEXT("Software\\Microsoft\\Windows\\DWM");
 
 static const TCHAR g_explorerPatcherKey[] =
-    TEXT("SOFTWARE\\ExplorerPatcher");
+    TEXT("Software\\ExplorerPatcher");
 
 typedef struct tagTBSETTINGS
 {
@@ -58,8 +58,8 @@ void LoadRegSettings(void)
 
 #define ReadDword(valueName) \
     dwSize = sizeof(DWORD); \
-    status = RegQueryValueEx( \
-        hKey, valueName, 0, &dwType, (BYTE *)&dwData, &dwSize)
+    status = RegQueryValueEx(hKey, valueName, 0, \
+        &dwType, (BYTE *)&dwData, &dwSize)
 
 #define ReadInt(valueName, member) \
     ReadDword(valueName); \
@@ -71,8 +71,8 @@ void LoadRegSettings(void)
     if (status == ERROR_SUCCESS && dwType == REG_DWORD) \
         g_oldSettings.member = !dwData
 
-    status = RegOpenKeyEx(
-        HKEY_CURRENT_USER, g_explorerKey, 0, KEY_QUERY_VALUE, &hKey);
+    status = RegOpenKeyEx(HKEY_CURRENT_USER, g_explorerKey, 0,
+        KEY_QUERY_VALUE, &hKey);
     if (status == ERROR_SUCCESS)
     {
         ReadInt(TEXT("TaskbarAnimations"), bAnimations);
@@ -81,16 +81,16 @@ void LoadRegSettings(void)
         RegCloseKey(hKey);
     }
 
-    status = RegOpenKeyEx(
-        HKEY_CURRENT_USER, g_dwmKey, 0, KEY_QUERY_VALUE, &hKey);
+    status = RegOpenKeyEx(HKEY_CURRENT_USER, g_dwmKey, 0,
+        KEY_QUERY_VALUE, &hKey);
     if (status == ERROR_SUCCESS)
     {
         ReadInt(TEXT("AlwaysHibernateThumbnails"), bSaveThumbnails);
         RegCloseKey(hKey);
     }
 
-    status = RegOpenKeyEx(
-        HKEY_CURRENT_USER, g_explorerPatcherKey, 0, KEY_QUERY_VALUE, &hKey);
+    status = RegOpenKeyEx(HKEY_CURRENT_USER, g_explorerPatcherKey, 0,
+        KEY_QUERY_VALUE, &hKey);
     if (status == ERROR_SUCCESS)
     {
         ReadInt(TEXT("TaskbarAutohideOnDoubleClick"), bToggleAutoHide);
@@ -181,8 +181,8 @@ BOOL WriteRegSettings(void)
         if (status == ERROR_SUCCESS)
         {
             UpdateDword(TEXT("TaskbarAnimations"), bAnimations);
-            UpdateDwordInverted(
-                TEXT("DontUsePowerShellOnWinX"), bWinXPowerShell);
+            UpdateDwordInverted(TEXT("DontUsePowerShellOnWinX"),
+                bWinXPowerShell);
             UpdateDword(TEXT("TaskbarSd"), bShowDesktop);
             RegCloseKey(hKey);
         }
@@ -254,8 +254,8 @@ void ApplySettings(void)
 
     if (bSendSettingChange)
     {
-        SendNotifyMessage(
-            HWND_BROADCAST, WM_SETTINGCHANGE, 0L, (LPARAM)TEXT("TraySettings"));
+        SendNotifyMessage(HWND_BROADCAST, WM_SETTINGCHANGE,
+            0L, (LPARAM)TEXT("TraySettings"));
     }
 }
 
