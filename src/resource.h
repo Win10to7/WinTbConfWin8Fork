@@ -2,8 +2,8 @@
 #if !defined(RESOURCE_H)
 #define RESOURCE_H
 
-#define VERSION      1,1,2,0
-#define VERSION_STR  "1.1.2\0"
+#define VERSION      1,1,3,0
+#define VERSION_STR  "1.1.3\0"
 
 #define IDC_STATIC  -1
 
