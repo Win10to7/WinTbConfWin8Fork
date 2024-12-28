@@ -152,18 +152,6 @@ BOOL ShowRunningInstance(void)
     return TRUE;
 }
 
-static
-BOOL ShowRestrictedMessage(void)
-{
-    HMODULE hSystem32 = GetModuleHandle(TEXT("shell32.dll"));
-    if (hSystem32 == NULL)
-        return FALSE;
-
-    int ret = ShowMessageFromResource(hSystem32, NULL, 9729, 9728,
-        MB_OK | MB_ICONERROR);
-    return (ret > 0);
-}
-
 _Success_(return < RETURN_ERROR)
 static
 UINT InitGUI(UINT nStartPage)
@@ -186,6 +174,7 @@ BOOL IsAppRestricted(void)
         return FALSE;
 
     BOOL(WINAPI *SHWindowsPolicy)(GUID *rpolid);
+    int(WINAPI *SHRestrictedMessageBox)(HWND hWnd);
 
 #if defined(__GNUC__)
 #pragma GCC diagnostic push
@@ -193,15 +182,21 @@ BOOL IsAppRestricted(void)
 #endif
     *(FARPROC *)&SHWindowsPolicy =
         GetProcAddress(hShlwapi, MAKEINTRESOURCEA(618));
+
+    *(FARPROC *)&SHRestrictedMessageBox =
+        GetProcAddress(hShlwapi, MAKEINTRESOURCEA(384));
 #if defined(__GNUC__)
 #pragma GCC diagnostic pop
 #endif
 
     /* "Prevent changes to Taskbar and Start Menu Settings",
      * "Lock all taskbar settings" */
-    BOOL isRestricted = SHWindowsPolicy && (
+    BOOL isRestricted = SHWindowsPolicy && SHRestrictedMessageBox && (
         SHWindowsPolicy((GUID *)&POLID_NoSetTaskbar) ||
         SHWindowsPolicy((GUID *)&POLID_TaskbarLockAll));
+
+    if (isRestricted)
+        SHRestrictedMessageBox(NULL);
 
     FreeLibrary(hShlwapi);
     return isRestricted;
@@ -225,11 +220,7 @@ UINT InitProgram(void)
     /* Respect user policies in Administrative Templates ->
      * Start Menu and Taskbar */
     if (IsAppRestricted())
-    {
-        if (!ShowRestrictedMessage())
-            goto Error;
         return RETURN_ERROR;
-    }
 
     return InitGUI(0);
 
