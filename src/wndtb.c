@@ -13,6 +13,9 @@
 #include <shellapi.h>
 #include <shlwapi.h>
 
+#define EnableApply() \
+    SendMessage(g_propSheet.hWnd, PSM_CHANGED, (WPARAM)g_hDlg, 0L)
+
 #define SetChecked(iControl, bChecked) \
     SendDlgItemMessage(g_hDlg, iControl, \
         BM_SETCHECK, (WPARAM)(bChecked == 1), 0L)
@@ -505,7 +508,7 @@ void HandleCommand(WORD iControl)
         return;
     }
 
-    PropSheet_Changed(g_propSheet.hWnd, g_hDlg);
+    EnableApply();
 
 #undef GetChecked
 }
@@ -538,7 +541,7 @@ void HandleComboBoxSelChange(WORD iControl)
         return;
     }
 
-    PropSheet_Changed(g_propSheet.hWnd, g_hDlg);
+    EnableApply();
 
 #undef GetComboIndex
 }

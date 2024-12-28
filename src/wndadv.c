@@ -14,6 +14,9 @@
 
 #include <psapi.h>
 
+#define EnableApply() \
+    SendMessage(g_propSheet.hWnd, PSM_CHANGED, (WPARAM)g_hDlg, 0L)
+
 static const TCHAR g_explorerKey[] =
     TEXT("Software\\Microsoft\\Windows\\CurrentVersion\\Explorer\\Advanced");
 
@@ -357,7 +360,7 @@ void HandleCommand(WORD iControl)
         return;
     }
 
-    PropSheet_Changed(g_propSheet.hWnd, g_hDlg);
+    EnableApply();
 
 #undef GetChecked
 }
