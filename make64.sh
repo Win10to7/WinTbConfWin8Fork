@@ -1,7 +1,7 @@
 #!/bin/sh
 
 if [ -z "$MAKE" ] ; then
-	MAKE=ming32-make
+	MAKE=mingw32-make
 	command -v $MAKE 2&>/dev/null || MAKE=make
 fi
 
