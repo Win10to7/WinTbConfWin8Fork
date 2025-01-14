@@ -12,7 +12,10 @@
 
 _Success_(return >= 0)
 static
-int LengthOfStrResource(HMODULE hModule, UINT id)
+int LengthOfStrResource(
+    HMODULE hModule,
+    UINT id
+)
 {
     if (!hModule)
         return -1;
@@ -44,7 +47,11 @@ int LengthOfStrResource(HMODULE hModule, UINT id)
 }
 
 _Success_(return > 0)
-int AllocAndLoadString(HMODULE hModule, UINT id, _Out_ TCHAR **pTarget)
+int AllocAndLoadString(
+    HMODULE hModule,
+    UINT id,
+    _Out_ TCHAR **pTarget
+)
 {
     int len = LengthOfStrResource(hModule, id);
     if (len++ > 0)
@@ -66,8 +73,13 @@ int AllocAndLoadString(HMODULE hModule, UINT id, _Out_ TCHAR **pTarget)
 }
 
 _Success_(return != 0)
-int ShowMessageFromResource(HMODULE hModule, HWND hWnd,
-    int msgId, int titleMsgId, UINT type)
+int ShowMessageFromResource(
+    HMODULE hModule,
+    HWND hWnd,
+    int msgId,
+    int titleMsgId,
+    UINT type
+)
 {
     TCHAR *msg;
     TCHAR *msgTitle;

@@ -27,12 +27,24 @@ PROPSHEET g_propSheet;
 
 /* Property sheet dialog proc forward definitions */
 INT_PTR CALLBACK GeneralPageProc(
-    HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam);
+    HWND hWnd,
+    UINT uMsg,
+    WPARAM wParam,
+    LPARAM lParam
+);
 INT_PTR CALLBACK AdvancedPageProc(
-    HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam);
+    HWND hWnd,
+    UINT uMsg,
+    WPARAM wParam,
+    LPARAM lParam
+);
 
 static
-void InitPage(PROPSHEETHEADER *ppsh, WORD idDlg, DLGPROC dlgProc)
+void InitPage(
+    PROPSHEETHEADER *ppsh,
+    WORD idDlg,
+    DLGPROC dlgProc
+)
 {
     PROPSHEETPAGE psp;
 
@@ -68,7 +80,11 @@ void SetIcon(void)
 }
 
 static
-int CALLBACK PropSheetProc(HWND hWnd, UINT uMsg, LPARAM lParam)
+int CALLBACK PropSheetProc(
+    HWND hWnd,
+    UINT uMsg,
+    LPARAM lParam
+)
 {
     UNREFERENCED_PARAMETER(lParam);
 

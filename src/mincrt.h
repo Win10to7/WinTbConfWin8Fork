@@ -9,7 +9,11 @@
 
 #if !defined(_MSC_VER)
 
-void *min_memset(void *_Dst, int _Val, size_t _Size);
+void *min_memset(
+    void *_Dst,
+    int _Val,
+    size_t _Size
+);
 
 #endif  /* !defined(_MSC_VER) */
 

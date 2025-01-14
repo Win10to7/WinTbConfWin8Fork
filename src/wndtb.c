@@ -547,7 +547,11 @@ void HandleComboBoxSelChange(WORD iControl)
 }
 
 INT_PTR CALLBACK GeneralPageProc(
-    HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
+    HWND hWnd,
+    UINT uMsg,
+    WPARAM wParam,
+    LPARAM lParam
+)
 {
     switch (uMsg)
     {

@@ -8,14 +8,23 @@
 #include <windows.h>
 
 _Success_(return > 0)
-int AllocAndLoadString(HMODULE hModule, UINT id, _Out_ TCHAR **pTarget);
+int AllocAndLoadString(
+    HMODULE hModule,
+    UINT id,
+    _Out_ TCHAR **pTarget
+);
 
 #define AllocAndLoadAppString(id, pTarget) \
     AllocAndLoadString(g_propSheet.hInstance, id, pTarget)
 
 _Success_(return != 0)
-int ShowMessageFromResource(HMODULE hModule, HWND hWnd,
-    int msgId, int titleMsgId, UINT type);
+int ShowMessageFromResource(
+    HMODULE hModule,
+    HWND hWnd,
+    int msgId,
+    int titleMsgId,
+    UINT type
+);
 
 #define ShowMessageFromAppResource(hWnd, msgId, titleMsgId, type) \
     ShowMessageFromResource(g_propSheet.hInstance, hWnd, \
