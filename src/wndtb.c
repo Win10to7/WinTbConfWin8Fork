@@ -226,8 +226,8 @@ static
 void DisableRestrictedControls(void)
 {
     /* "Lock the Taskbar" policy */
-    if (SHRegGetBoolValueFromHKCUHKLM(g_policiesKey, TEXT("LockTaskbar"),
-        FALSE))
+    if (SHRegGetBoolUSValue(g_policiesKey, TEXT("LockTaskbar"),
+        FALSE, FALSE))
     {
         g_oldSettings.bLock = TRUE;
         g_newSettings.bLock = TRUE;
@@ -235,8 +235,8 @@ void DisableRestrictedControls(void)
     }
 
     /* "Prevent grouping of taskbar items" policy */
-    if (SHRegGetBoolValueFromHKCUHKLM(g_policiesKey, TEXT("NoTaskGrouping"),
-        FALSE))
+    if (SHRegGetBoolUSValue(g_policiesKey, TEXT("NoTaskGrouping"),
+        FALSE, FALSE))
     {
         g_oldSettings.iCombineButtons = 2;
         g_newSettings.iCombineButtons = 2;
