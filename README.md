@@ -1,4 +1,8 @@
-# Classic Windows taskbar configurator
+# Classic Windows taskbar configurator (FORK)
+
+This is a fork of https://gitlab.com/ftortoriello/WinTbConf that replicates the Windows 8.x dialog and quirks. 
+
+
 
 Provides a taskbar settings dialog similar to Windows versions prior to 1607,
 with some extra features.
