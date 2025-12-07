@@ -79,6 +79,56 @@ void SetIcon(void)
     SendMessage(g_propSheet.hWnd, WM_SETICON, ICON_SMALL, (LPARAM)g_hiconSmall);
 }
 
+static LRESULT CALLBACK PropSheetSubclassProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam, UINT_PTR uIdSubclass, DWORD_PTR dwRefData)
+{
+    if (uMsg == WM_SHOWWINDOW && wParam) {
+        RECT wndRect;
+        GetWindowRect(hWnd, &wndRect);
+        int wndWidth = wndRect.right - wndRect.left;
+        int wndHeight = wndRect.bottom - wndRect.top;
+
+        /* Get screen and work area */
+        int screenWidth = GetSystemMetrics(SM_CXSCREEN);
+        int screenHeight = GetSystemMetrics(SM_CYSCREEN);
+        RECT workArea;
+        SystemParametersInfo(SPI_GETWORKAREA, 0, &workArea, 0);
+
+        int x = 0, y = 0;
+
+        if (workArea.top > 0) {
+            /* Taskbar at top */
+            x = workArea.left;
+            y = workArea.top;
+        } else if (workArea.left > 0) {
+            /* Taskbar at left */
+            x = workArea.left;
+            y = workArea.top;
+        } else if (workArea.right < screenWidth) {
+            /* Taskbar at right */
+            x = workArea.right - wndWidth;
+            y = workArea.top;
+        } else if (workArea.bottom < screenHeight) {
+            /* Taskbar at bottom */
+            x = workArea.left;
+            y = workArea.bottom - wndHeight;
+        } else {
+            x = 0;
+            y = 0;
+        }
+
+        SetWindowPos(
+            hWnd,
+            HWND_TOP,
+            x,
+            y,
+            wndWidth,
+            wndHeight,
+            SWP_NOZORDER | SWP_NOSIZE
+        );
+    }
+    return DefSubclassProc(hWnd, uMsg, wParam, lParam);
+}
+
 static
 int CALLBACK PropSheetProc(
     HWND hWnd,
@@ -93,6 +143,8 @@ int CALLBACK PropSheetProc(
     case PSCB_INITIALIZED:
         g_propSheet.hWnd = hWnd;
         SetIcon();
+        SetWindowSubclass(hWnd, PropSheetSubclassProc, 1, 0);
+        break;
     }
 
     return 0;
