@@ -12,6 +12,7 @@
 #include <commctrl.h>
 #include <initguid.h>
 #include <shellapi.h>
+#include <shlobj.h>
 
 /* https://www.geoffchappell.com/studies/windows/shell/shlwapi/api/winpolicy/policies.htm
  */
@@ -94,26 +95,56 @@ static LRESULT CALLBACK PropSheetSubclassProc(HWND hWnd, UINT uMsg, WPARAM wPara
         SystemParametersInfo(SPI_GETWORKAREA, 0, &workArea, 0);
 
         int x = 0, y = 0;
+        APPBARDATA abd = { 0 };
+        abd.cbSize = sizeof(APPBARDATA);
+        UINT state = SHAppBarMessage(ABM_GETSTATE, &abd);
+        BOOL isAutoHide = (state & ABS_AUTOHIDE);
 
-        if (workArea.top > 0) {
-            /* Taskbar at top */
-            x = workArea.left;
-            y = workArea.top;
-        } else if (workArea.left > 0) {
-            /* Taskbar at left */
-            x = workArea.left;
-            y = workArea.top;
-        } else if (workArea.right < screenWidth) {
-            /* Taskbar at right */
-            x = workArea.right - wndWidth;
-            y = workArea.top;
-        } else if (workArea.bottom < screenHeight) {
-            /* Taskbar at bottom */
-            x = workArea.left;
-            y = workArea.bottom - wndHeight;
+        if (isAutoHide) {
+            abd.hWnd = FindWindow(TEXT("Shell_TrayWnd"), NULL);
+            if (abd.hWnd && SHAppBarMessage(ABM_GETTASKBARPOS, &abd)) {
+                if (abd.rc.top == 0 && abd.rc.left == 0 && abd.rc.right == screenWidth) {
+                    /* Taskbar at top */
+                    x = workArea.left;
+                    y = 0;
+                } else if (abd.rc.left == 0 && abd.rc.top == 0 && abd.rc.bottom == screenHeight) {
+                    /* Taskbar at left */
+                    x = 0;
+                    y = workArea.top;
+                } else if (abd.rc.right == screenWidth && abd.rc.top == 0 && abd.rc.bottom == screenHeight) {
+                    /* Taskbar at right */
+                    x = screenWidth - wndWidth;
+                    y = workArea.top;
+                } else {
+                    /* Taskbar at bottom */
+                    x = workArea.left;
+                    y = screenHeight - wndHeight;
+                }
+            } else {
+                x = 0;
+                y = 0;
+            }
         } else {
-            x = 0;
-            y = 0;
+            if (workArea.top > 0) {
+                /* Taskbar at top */
+                x = workArea.left;
+                y = workArea.top;
+            } else if (workArea.left > 0) {
+                /* Taskbar at left */
+                x = workArea.left;
+                y = workArea.top;
+            } else if (workArea.right < screenWidth) {
+                /* Taskbar at right */
+                x = workArea.right - wndWidth;
+                y = workArea.top;
+            } else if (workArea.bottom < screenHeight) {
+                /* Taskbar at bottom */
+                x = workArea.left;
+                y = workArea.bottom - wndHeight;
+            } else {
+                x = 0;
+                y = 0;
+            }
         }
 
         SetWindowPos(
