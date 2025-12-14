@@ -91,9 +91,16 @@ static LRESULT CALLBACK PropSheetSubclassProc(HWND hWnd, UINT uMsg, WPARAM wPara
         /* Get screen and work area */
         int screenWidth = GetSystemMetrics(SM_CXSCREEN);
         int screenHeight = GetSystemMetrics(SM_CYSCREEN);
-        RECT workArea;
-        SystemParametersInfo(SPI_GETWORKAREA, 0, &workArea, 0);
 
+        POINT pt;
+        GetCursorPos(&pt);
+        HMONITOR hMonitor = MonitorFromPoint(pt, MONITOR_DEFAULTTONEAREST);
+        MONITORINFO mi = { 0 };
+        mi.cbSize = sizeof(mi);
+        GetMonitorInfo(hMonitor, &mi);
+
+        RECT workArea = mi.rcWork;
+        RECT monitorArea = mi.rcMonitor;
         int x = 0, y = 0;
         APPBARDATA abd = { 0 };
         abd.cbSize = sizeof(APPBARDATA);
@@ -121,29 +128,30 @@ static LRESULT CALLBACK PropSheetSubclassProc(HWND hWnd, UINT uMsg, WPARAM wPara
                     y = screenHeight - wndHeight;
                 }
             } else {
-                x = 0;
-                y = 0;
+                x = workArea.left + ((workArea.right - workArea.left) - wndWidth) / 2;
+                y = workArea.top + ((workArea.bottom - workArea.top) - wndHeight) / 2;
             }
         } else {
-            if (workArea.top > 0) {
+            if (workArea.top > monitorArea.top) {
                 /* Taskbar at top */
                 x = workArea.left;
                 y = workArea.top;
-            } else if (workArea.left > 0) {
+            } else if (workArea.left > monitorArea.left) {
                 /* Taskbar at left */
                 x = workArea.left;
                 y = workArea.top;
-            } else if (workArea.right < screenWidth) {
+            } else if (workArea.right < monitorArea.right) {
                 /* Taskbar at right */
                 x = workArea.right - wndWidth;
                 y = workArea.top;
-            } else if (workArea.bottom < screenHeight) {
+            } else if (workArea.bottom < monitorArea.bottom) {
                 /* Taskbar at bottom */
                 x = workArea.left;
                 y = workArea.bottom - wndHeight;
+                if (y < 0) y = 0;
             } else {
-                x = 0;
-                y = 0;
+                x = workArea.left + ((workArea.right - workArea.left) - wndWidth) / 2;
+                y = workArea.top + ((workArea.bottom - workArea.top) - wndHeight) / 2;
             }
         }
 
